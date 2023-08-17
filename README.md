@@ -1,2 +1,2 @@
-# boogle
+# Boogle
  Boggle web app
