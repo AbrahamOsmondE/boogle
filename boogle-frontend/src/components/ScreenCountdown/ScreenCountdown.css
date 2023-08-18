@@ -1,0 +1,57 @@
+.countdown-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.countdown-number-1 {
+  font-size: 5rem;
+  color: white;
+  animation: scaleAnimation1 1s ease-in-out; /* Use a CSS animation for scaling */
+}
+
+.countdown-number-2 {
+  font-size: 5rem;
+  color: white;
+  animation: scaleAnimation2 1s ease-in-out; /* Use a CSS animation for scaling */
+}
+
+.countdown-number-3 {
+  font-size: 5rem;
+  color: white;
+  animation: scaleAnimation3 1s ease-in-out; /* Use a CSS animation for scaling */
+}
+
+@keyframes scaleAnimation1 {
+  0% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes scaleAnimation2 {
+  0% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes scaleAnimation3 {
+  0% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

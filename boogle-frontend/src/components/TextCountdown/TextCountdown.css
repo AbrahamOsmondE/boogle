@@ -1,0 +1,14 @@
+.countdown-container {
+  display: flex;
+  align-items: center;
+}
+
+.clock-icon {
+  font-size: 2rem;
+  margin-right: 1rem;
+}
+
+.countdown-text {
+  font-size: 2rem;
+  color: white;
+}

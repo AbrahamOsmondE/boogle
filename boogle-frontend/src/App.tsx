@@ -9,25 +9,19 @@ function App() {
   const renderScreen = () => {
     switch (screen) {
       case Screens.MainScreen:
-        return <MainScreen setScreen={setScreen}/>;
+        return <MainScreen setScreen={setScreen} />;
       case Screens.PracticeScreen:
-        return <PracticeScreen setScreen={setScreen} />
+        return <PracticeScreen setScreen={setScreen} />;
       default:
-        return <MainScreen setScreen={setScreen}/>
+        return <MainScreen setScreen={setScreen} />;
     }
   };
-  return (
-    <div className="App">
-      <header className="App-header">
-        {renderScreen()}
-      </header>
-    </div>
-  );
+  return <div className="App">{renderScreen()}</div>;
 }
 
 export default App;
 
 enum Screens {
   MainScreen = 0,
-  PracticeScreen = 1
+  PracticeScreen = 1,
 }
