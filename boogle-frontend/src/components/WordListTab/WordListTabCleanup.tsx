@@ -19,12 +19,15 @@ import EditIcon from "@mui/icons-material/Edit";
 import { TabContext } from "@mui/lab";
 import { Players } from "../../stages/core";
 
-const WordListTabCleanUp: React.FC<WordListTabCleanUpProps> = ({ players, setPlayers }) => {
+const WordListTabCleanUp: React.FC<WordListTabCleanUpProps> = ({
+  players,
+  setPlayers,
+}) => {
   const [open, setOpen] = useState(false);
   const [editedWord, setEditedWord] = useState("");
   const [editPlayerName, setEditPlayerName] = useState("");
   const [editWordIndex, setEditWordIndex] = useState(-1);
-  const [error, setError] = useState(false)
+  const [error, setError] = useState(false);
 
   const [selectedTab, setSelectedTab] = useState("0");
 
@@ -41,7 +44,7 @@ const WordListTabCleanUp: React.FC<WordListTabCleanUpProps> = ({ players, setPla
     setEditPlayerName(playerName);
     setEditWordIndex(wordIndex);
     setEditedWord(players[playerName][wordIndex].word);
-    setOpen(true)
+    setOpen(true);
   };
 
   const handleCheckboxToggle = (playerName: string, wordIndex: number) => {
@@ -61,16 +64,16 @@ const WordListTabCleanUp: React.FC<WordListTabCleanUpProps> = ({ players, setPla
   };
 
   const handleClose = () => {
-    if(textFieldRef.current) textFieldRef.current.blur()
+    if (textFieldRef.current) textFieldRef.current.blur();
     setOpen(false);
   };
 
   const handleSave = () => {
     const alphabetPattern = /^[a-zA-Z]+$/;
 
-    if (!alphabetPattern.test(editedWord)){
-      setError(true)
-      return
+    if (!alphabetPattern.test(editedWord)) {
+      setError(true);
+      return;
     }
     const updatedPlayers = {
       ...players,
@@ -91,96 +94,115 @@ const WordListTabCleanUp: React.FC<WordListTabCleanUpProps> = ({ players, setPla
   return (
     <>
       <TabContext value={selectedTab}>
-      <div style={{ width: "70%" }}>
-        <Tabs
-          value={selectedTab}
-          onChange={handleTabChange}
-          variant="fullWidth"
-          indicatorColor="primary"
-          style={{ border: "1px solid grey", borderBottom: "0px solid grey" }}
-          TabIndicatorProps={{ style: { background: "white" } }}
-        >
-          {Object.keys(players).map((playerName, index) => (
-            <Tab
-              key={index}
-              disabled={playerName === "solutions"}
-              label={playerName}
-              value={index.toString()}
-              style={{
-                color: selectedTab === index.toString() ? "white" : "grey",
-              }}
-              sx={{
-                "& .MuiTabs-indicator": {
-                  backgroundColor: "white",
-                },
-                "&.Mui-selected": {
-                  color: "white",
-                  "& .MuiTabFocusRipple-root": {
-                    color: "white",
-                  },
-                },
-              }}
-            />
-          ))}
-        </Tabs>
-        {Object.keys(players).map((playerName, playerIndex) => (
-          <TabPanel
-            key={playerIndex}
-            value={playerIndex.toString()}
-            style={{
-              height: "60vh",
-              overflowY: "auto",
-              padding: "0px 4px",
-              border: "1px solid grey",
-            }}
+        <div style={{ width: "70%" }}>
+          <Tabs
+            value={selectedTab}
+            onChange={handleTabChange}
+            variant="fullWidth"
+            indicatorColor="primary"
+            style={{ border: "1px solid grey", borderBottom: "0px solid grey" }}
+            TabIndicatorProps={{ style: { background: "white" } }}
           >
-            <List style={{ paddingTop: "0px" }}>
-              {players[playerName].map((word, wordIndex) => (
-                <ListItem key={wordIndex} style={{paddingTop:"0", paddingBottom:"0", marginTop: "1rem", height:"1.2rem"}}>
-                  <ListItemText
-                    primary={word.word}
-                    primaryTypographyProps={{
-                      variant: "body2",
-                      style: { fontSize: "14px", textDecoration: word.checked ? "": "line-through"  },
+            {Object.keys(players).map((playerName, index) => (
+              <Tab
+                key={index}
+                disabled={playerName === "solutions"}
+                label={playerName}
+                value={index.toString()}
+                style={{
+                  color: selectedTab === index.toString() ? "white" : "grey",
+                }}
+                sx={{
+                  "& .MuiTabs-indicator": {
+                    backgroundColor: "white",
+                  },
+                  "&.Mui-selected": {
+                    color: "white",
+                    "& .MuiTabFocusRipple-root": {
+                      color: "white",
+                    },
+                  },
+                }}
+              />
+            ))}
+          </Tabs>
+          {Object.keys(players).map((playerName, playerIndex) => (
+            <TabPanel
+              key={playerIndex}
+              value={playerIndex.toString()}
+              style={{
+                height: "60vh",
+                overflowY: "auto",
+                padding: "0px 4px",
+                border: "1px solid grey",
+              }}
+            >
+              <List style={{ paddingTop: "0px" }}>
+                {players[playerName].map((word, wordIndex) => (
+                  <ListItem
+                    key={wordIndex}
+                    style={{
+                      paddingTop: "0",
+                      paddingBottom: "0",
+                      marginTop: "1rem",
+                      height: "1.2rem",
                     }}
-                    style={{marginTop: '0', marginBottom:'0'}}
-                  />
-                  <Checkbox
-                    checked={players[playerName][wordIndex].checked}
-                    onClick={() => handleCheckboxToggle(playerName, wordIndex)}
-                    style={{ marginRight: "10px", color: "white", padding: '0px', height:'100%' }}
-                    sx={{
-                      "& .MuiSvgIcon-root": {
-                        height: "100%"
-                      },
-                      "& .MuiTouchRipple-root": {
-                        height: "100%"
+                  >
+                    <ListItemText
+                      primary={word.word}
+                      primaryTypographyProps={{
+                        variant: "body2",
+                        style: {
+                          fontSize: "14px",
+                          textDecoration: word.checked ? "" : "line-through",
+                        },
+                      }}
+                      style={{ marginTop: "0", marginBottom: "0" }}
+                    />
+                    <Checkbox
+                      checked={players[playerName][wordIndex].checked}
+                      onClick={() =>
+                        handleCheckboxToggle(playerName, wordIndex)
                       }
-                    }}
-                  />
-                  <EditIcon
-                    onClick={() => handleEditClick(playerName, wordIndex)}
-                    style={{ height: '100%' }}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </TabPanel>
-        ))}
-      </div>
+                      style={{
+                        marginRight: "10px",
+                        color: "white",
+                        padding: "0px",
+                        height: "100%",
+                      }}
+                      sx={{
+                        "& .MuiSvgIcon-root": {
+                          height: "100%",
+                        },
+                        "& .MuiTouchRipple-root": {
+                          height: "100%",
+                        },
+                      }}
+                    />
+                    <EditIcon
+                      onClick={() => handleEditClick(playerName, wordIndex)}
+                      style={{ height: "100%" }}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </TabPanel>
+          ))}
+        </div>
       </TabContext>
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Edit Answer</DialogTitle>
         <DialogContent>
-        {error && <DialogContentText>Alphabet only!</DialogContentText>}
+          {error && <DialogContentText>Alphabet only!</DialogContentText>}
           <TextField
             error={error}
             autoFocus
             margin="dense"
             value={editedWord}
             onChange={(e) => {
-              setError(false)
-              setEditedWord(e.target.value)}}
+              setError(false);
+              setEditedWord(e.target.value);
+            }}
             fullWidth
             inputRef={textFieldRef}
           />
@@ -200,7 +222,7 @@ const WordListTabCleanUp: React.FC<WordListTabCleanUpProps> = ({ players, setPla
 
 export interface WordListTabCleanUpProps {
   players: Players;
-  setPlayers: (value:Players) => void;
+  setPlayers: (value: Players) => void;
 }
 
 export default WordListTabCleanUp;

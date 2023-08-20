@@ -35,7 +35,6 @@ const CleanUpStage: React.FC<CleanUpStageProps> = ({
     if (time === 0) setStage(1);
   }, [time]);
 
-
   return (
     <div style={containerStyle}>
       {count !== 0 ? (
@@ -54,7 +53,7 @@ const CleanUpStage: React.FC<CleanUpStageProps> = ({
             {" "}
             {word}
           </Typography>
-          <WordListTabCleanUp players={players} setPlayers={setPlayers}/>
+          <WordListTabCleanUp players={players} setPlayers={setPlayers} />
         </>
       )}
     </div>

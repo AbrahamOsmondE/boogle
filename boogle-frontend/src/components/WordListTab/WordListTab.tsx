@@ -1,11 +1,5 @@
 import React, { useState } from "react";
-import {
-  Tabs,
-  Tab,
-  List,
-  ListItem,
-  ListItemText,
-} from "@mui/material";
+import { Tabs, Tab, List, ListItem, ListItemText } from "@mui/material";
 import TabPanel from "@mui/lab/TabPanel";
 import { TabContext } from "@mui/lab";
 import { Players } from "../../stages/core";

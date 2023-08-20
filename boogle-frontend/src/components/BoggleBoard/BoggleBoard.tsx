@@ -3,18 +3,23 @@ import CSS from "csstype";
 import { Players } from "../../stages/core";
 import { useAppSelector } from "../../app/hooks";
 import { selectGlobalName } from "../../redux/features/globalSlice";
-const BoggleBoard: React.FC<BoggleBoardProps> = ({ letters, setWord, players, setPlayers }) => {
+const BoggleBoard: React.FC<BoggleBoardProps> = ({
+  letters,
+  setWord,
+  players,
+  setPlayers,
+}) => {
   const [selectedBoxes, setSelectedBoxes] = useState(new Set<number>());
-  const [lastIndex, setLastIndex] = useState(0)
+  const [lastIndex, setLastIndex] = useState(0);
   const name = useAppSelector(selectGlobalName);
 
   const handleBoxClick = (index: number) => {
-    setSelectedBoxes(prev => new Set(prev.add(index)));
-    setLastIndex(index)
+    setSelectedBoxes((prev) => new Set(prev.add(index)));
+    setLastIndex(index);
   };
 
   const handleBoxTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
-    event.stopPropagation()
+    event.stopPropagation();
     if (selectedBoxes.size === 0) return;
 
     const touch = event.touches[0];
@@ -27,29 +32,30 @@ const BoggleBoard: React.FC<BoggleBoardProps> = ({ letters, setWord, players, se
 
     const index = parseInt(indexChar);
 
-    if (
-      !selectedBoxes.has(index) &&
-      areIndicesAdjacent(lastIndex, index)
-    ) {
-      setLastIndex(index)
-      setSelectedBoxes(prev => new Set(prev.add(index)));
+    if (!selectedBoxes.has(index) && areIndicesAdjacent(lastIndex, index)) {
+      setLastIndex(index);
+      setSelectedBoxes((prev) => new Set(prev.add(index)));
     }
   };
 
   const handleBoxTouchEnd = () => {
-    const word = Array.from(selectedBoxes)
-    .map((index) => letters[index])
-    .join("")
-    .toUpperCase() || " ";
+    const word =
+      Array.from(selectedBoxes)
+        .map((index) => letters[index])
+        .join("")
+        .toUpperCase() || " ";
 
     if (word.length > 2) {
       setPlayers({
         ...players,
-        [name]: [...players[name], {
-          word: word,
-          checked: true
-        }]
-      })
+        [name]: [
+          ...players[name],
+          {
+            word: word,
+            checked: true,
+          },
+        ],
+      });
     }
 
     setSelectedBoxes(new Set<number>());
