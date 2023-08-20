@@ -9,38 +9,31 @@ const BoggleBoard: React.FC<BoggleBoardProps> = ({
   players,
   setPlayers,
 }) => {
-  const [selectedBoxes, setSelectedBoxes] = useState(new Set<number>());
+  const [selectedBoxes, setSelectedBoxes] = useState<number[]>([]);
   const [lastIndex, setLastIndex] = useState(0);
   const name = useAppSelector(selectGlobalName);
 
-  const handleBoxClick = (index: number) => {
-    setSelectedBoxes((prev) => new Set(prev.add(index)));
+  const handlePointerDown = (e: React.PointerEvent, index: number) => {
+    e.currentTarget.releasePointerCapture(e.pointerId);
+    setSelectedBoxes([...selectedBoxes, index]);
     setLastIndex(index);
   };
 
-  const handleBoxTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
-    event.stopPropagation();
-    if (selectedBoxes.size === 0) return;
+  const handlePointerEnter = (e: React.PointerEvent, index: number) => {
+    if (selectedBoxes.length === 0) return;
 
-    const touch = event.touches[0];
-    const checkbox = document.elementFromPoint(touch.clientX, touch.clientY);
-
-    if (!checkbox) return;
-
-    const indexChar = checkbox.getAttribute("data-key") as string | null;
-    if (!indexChar) return;
-
-    const index = parseInt(indexChar);
-
-    if (!selectedBoxes.has(index) && areIndicesAdjacent(lastIndex, index)) {
+    if (
+      !selectedBoxes.includes(index) &&
+      areIndicesAdjacent(lastIndex, index)
+    ) {
       setLastIndex(index);
-      setSelectedBoxes((prev) => new Set(prev.add(index)));
+      setSelectedBoxes([...selectedBoxes, index]);
     }
   };
 
   const handleBoxTouchEnd = () => {
     const word =
-      Array.from(selectedBoxes)
+      selectedBoxes
         .map((index) => letters[index])
         .join("")
         .toUpperCase() || " ";
@@ -58,7 +51,7 @@ const BoggleBoard: React.FC<BoggleBoardProps> = ({
       });
     }
 
-    setSelectedBoxes(new Set<number>());
+    setSelectedBoxes([]);
   };
 
   const areIndicesAdjacent = (index1: number, index2: number) => {
@@ -76,26 +69,11 @@ const BoggleBoard: React.FC<BoggleBoardProps> = ({
     return rowDiff <= 1 && colDiff <= 1;
   };
 
-  const isBoxSelected = (index: number) => selectedBoxes.has(index);
-
-  useEffect(() => {
-    const preventDefaultTouchmove = (event: TouchEvent) => {
-      event.preventDefault();
-    };
-
-    document.addEventListener("touchmove", preventDefaultTouchmove, {
-      passive: false,
-    });
-
-    return () => {
-      document.removeEventListener("touchmove", preventDefaultTouchmove);
-      setSelectedBoxes(new Set<number>());
-    };
-  }, []);
+  const isBoxSelected = (index: number) => selectedBoxes.includes(index);
 
   useEffect(() => {
     const newWord =
-      Array.from(selectedBoxes)
+      selectedBoxes
         .map((index) => letters[index])
         .join("")
         .toUpperCase() || " ";
@@ -109,9 +87,13 @@ const BoggleBoard: React.FC<BoggleBoardProps> = ({
           data-key={index}
           key={index}
           style={isBoxSelected(index) ? selectedBoxStyle : boxStyle}
-          onTouchMove={(event) => handleBoxTouchMove(event)}
+          onPointerDown={(event) => {
+            handlePointerDown(event, index);
+          }}
+          onPointerEnter={(event) => {
+            handlePointerEnter(event, index);
+          }}
           onTouchEnd={handleBoxTouchEnd}
-          onTouchStart={() => handleBoxClick(index)}
         >
           {letter}
         </div>

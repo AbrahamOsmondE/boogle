@@ -8,7 +8,7 @@ export interface Players {
   [key: string]: Words[];
 }
 
-interface Words {
+export interface Words {
   word: string;
   checked: boolean;
 }

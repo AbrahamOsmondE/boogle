@@ -8,16 +8,20 @@ import { Typography } from "@mui/material";
 import WordListTab from "../../components/WordListTab/WordListTab";
 import { Players } from "../core";
 import DefaultBoard from "../../components/BoggleBoard/DefaultBoard";
+import { useAppSelector } from "../../app/hooks";
+import { selectGlobalName } from "../../redux/features/globalSlice";
 
 const PlayStage: React.FC<PlayStageProps> = ({
   setScreen,
   setStage,
   players,
   setPlayers,
+  letters,
 }) => {
   const [count, setCount] = useState(3);
   const [time, setTime] = useState(10);
   const [word, setWord] = useState(" ");
+  const name = useAppSelector(selectGlobalName);
 
   useEffect(() => {
     window.scrollTo(0, document.body.scrollHeight);
@@ -55,7 +59,6 @@ const PlayStage: React.FC<PlayStageProps> = ({
               display: word ? "block" : "none", // Show or hide based on 'word' presence
             }}
           >
-            {" "}
             {word}
           </Typography>
           {time !== 0 ? (
@@ -68,7 +71,6 @@ const PlayStage: React.FC<PlayStageProps> = ({
           ) : (
             <DefaultBoard />
           )}
-          <WordListTab players={players} />
         </>
       )}
     </div>
@@ -82,6 +84,7 @@ interface PlayStageProps {
   setStage: (value: number) => void;
   players: Players;
   setPlayers: (value: Players) => void;
+  letters: string[];
 }
 
 const containerStyle: CSS.Properties = {
@@ -98,22 +101,3 @@ const containerStyle: CSS.Properties = {
   color: "white",
   overflow: "hidden",
 };
-
-const letters = [
-  "A",
-  "B",
-  "C",
-  "D",
-  "E",
-  "F",
-  "G",
-  "H",
-  "I",
-  "J",
-  "K",
-  "L",
-  "M",
-  "N",
-  "O",
-  "P",
-];
