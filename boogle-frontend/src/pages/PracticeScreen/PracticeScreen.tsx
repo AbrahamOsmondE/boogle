@@ -5,6 +5,7 @@ import CleanUpStage from "../../stages/CleanUpStage/CleanUpStage";
 import { Players, StageEnum } from "../../stages/core";
 import { useAppSelector } from "../../app/hooks";
 import { selectGlobalName } from "../../redux/features/globalSlice";
+import ResultStage from "../../stages/ResultStage/ResultStage";
 
 const PracticeScreen: React.FC<PracticeScreenProps> = ({ setScreen }) => {
   const [stage, setStage] = useState(0);
@@ -14,15 +15,12 @@ const PracticeScreen: React.FC<PracticeScreenProps> = ({ setScreen }) => {
   const [letters, setLetters] = useState(generateRandomBoggleBoard());
 
   useEffect(() => {
-    setPlayers({
-      [name]: [],
-      solutions: [],
-    });
-  }, []);
-
-  useEffect(() => {
     if (stage === 0) {
       setLetters(generateRandomBoggleBoard());
+      setPlayers({
+        [name]: [],
+        solutions: [],
+      });
     }
   }, [stage]);
 
@@ -48,7 +46,15 @@ const PracticeScreen: React.FC<PracticeScreenProps> = ({ setScreen }) => {
           />
         );
       case StageEnum.RESULT:
-        return <div></div>;
+        return (
+          <ResultStage
+            setScreen={setScreen}
+            setStage={setStage}
+            players={players}
+            setPlayers={setPlayers}
+            letters={letters}
+          />
+        );
     }
   };
   return <div>{renderStage(stage)}</div>;

@@ -27,7 +27,6 @@ const WordListTab: React.FC<WordListTabProps> = ({ players }) => {
           {Object.keys(players).map((playerName, index) => (
             <Tab
               key={index}
-              disabled={playerName === "solutions"}
               label={playerName}
               value={index.toString()}
               style={{

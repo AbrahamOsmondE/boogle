@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   Stack,
@@ -10,13 +10,17 @@ import {
 import PracticeDialog from "../../components/PraticeDialog/PracticeDialog";
 import CSS from "csstype";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
-import { setGlobalName } from "../../redux/features/globalSlice";
+import {
+  selectGlobalName,
+  setGlobalName,
+} from "../../redux/features/globalSlice";
 
 const MainScreen: React.FC<MainScreenProps> = ({ setScreen }) => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
 
   const [error, setError] = useState(false);
+  const username = useAppSelector(selectGlobalName);
 
   const dispatch = useAppDispatch();
 
@@ -31,6 +35,11 @@ const MainScreen: React.FC<MainScreenProps> = ({ setScreen }) => {
   const handleClose = () => {
     setOpen(false);
   };
+
+  useEffect(() => {
+    setName(username);
+  }, []);
+
   return (
     <div style={containerStyle}>
       <Typography variant="h2" gutterBottom style={{ color: "grey" }}>

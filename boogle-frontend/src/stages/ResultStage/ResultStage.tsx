@@ -1,22 +1,24 @@
 import React, { useEffect, useState } from "react";
 
 import CSS from "csstype";
+import BoggleBoard from "../../components/BoggleBoard/BoggleBoard";
+import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
 import TextCountdown from "../../components/TextCountdown/TextCountdown";
 import { Button, Stack, Typography } from "@mui/material";
-import WordListTabCleanUp from "../../components/WordListTab/WordListTabCleanup";
+import WordListTab from "../../components/WordListTab/WordListTab";
 import { Players, Words } from "../core";
-import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
+import DefaultBoard from "../../components/BoggleBoard/DefaultBoard";
 import { useAppSelector } from "../../app/hooks";
 import { selectGlobalName } from "../../redux/features/globalSlice";
 
-const CleanUpStage: React.FC<CleanUpStageProps> = ({
+const ResultStage: React.FC<ResultStageProps> = ({
   setScreen,
   setStage,
   players,
   setPlayers,
+  letters,
 }) => {
   const [count, setCount] = useState(3);
-  const [time, setTime] = useState(180);
   const name = useAppSelector(selectGlobalName);
 
   const countScore = (player: Words[]) => {
@@ -40,12 +42,6 @@ const CleanUpStage: React.FC<CleanUpStageProps> = ({
     }, 0);
   };
 
-  const filterWords = () => {
-    setPlayers({
-      ...players,
-      [name]: players[name].filter((val) => val.checked),
-    });
-  };
   useEffect(() => {
     window.scrollTo(0, document.body.scrollHeight);
     const timer = setInterval(() => {
@@ -57,55 +53,73 @@ const CleanUpStage: React.FC<CleanUpStageProps> = ({
     };
   }, []);
 
-  useEffect(() => {
-    if (time === 0) {
-      filterWords();
-      setStage(2);
-    }
-  }, [time]);
-
   return (
     <div style={containerStyle}>
       {count !== 0 ? (
-        <ScreenCountDown title={"Clean up!"} count={count} />
+        <ScreenCountDown title={"Result!"} count={count} />
       ) : (
         <>
-          <TextCountdown count={time} setCount={setTime} />
+          <Typography
+            variant="h4"
+            align="center"
+            style={{
+              minHeight: "8vh", // Set a minimum height to maintain space
+              display: "block", // Show or hide based on 'word' presence
+            }}
+          >
+            Results
+          </Typography>
           <Stack
             direction={"row"}
             justifyContent="space-between"
             sx={{ width: "70%", marginTop: "1vh", marginBottom: "2vh" }}
           >
-            <Typography variant="h6" align="center">
+            <Typography variant="h6" align="center" sx={{ fontSize: "1rem" }}>
               Score: {countScore(players[name])}
             </Typography>
-
-            <Button
-              style={{
-                backgroundColor: "grey",
-              }}
-              variant="contained"
-              onClick={() => {
-                setTime(0);
-              }}
-            >
-              Done
-            </Button>
+            <Stack direction={"row"} spacing={1}>
+              <Button
+                style={{
+                  backgroundColor: "grey",
+                  fontSize: "0.5rem",
+                }}
+                variant="contained"
+                onClick={() => {
+                  setScreen(0);
+                }}
+              >
+                Main Menu
+              </Button>
+              <Button
+                style={{
+                  backgroundColor: "grey",
+                  fontSize: "0.5rem",
+                }}
+                variant="contained"
+                onClick={() => {
+                  setStage(0);
+                }}
+              >
+                Play again
+              </Button>
+            </Stack>
           </Stack>
-          <WordListTabCleanUp players={players} setPlayers={setPlayers} />
+          <DefaultBoard inputLetters={letters} />
+          <WordListTab players={players} />
         </>
       )}
     </div>
   );
 };
 
-export default CleanUpStage;
+export default ResultStage;
 
-interface CleanUpStageProps {
+interface ResultStageProps {
   setScreen: (value: number) => void;
   setStage: (value: number) => void;
-  players: Players;
   setPlayers: (value: Players) => void;
+  players: Players;
+  letters: string[];
 }
 
 const containerStyle: CSS.Properties = {

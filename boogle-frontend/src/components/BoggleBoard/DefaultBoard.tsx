@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import CSS from "csstype";
 
-const DefaultBoard: React.FC = ({}) => {
+const DefaultBoard: React.FC<DefaultBoard> = ({ inputLetters }) => {
+  const letters = inputLetters || defaultLetters;
   return (
     <div style={gridContainerStyle}>
       {letters.map((letter, index) => (
@@ -16,6 +17,9 @@ const DefaultBoard: React.FC = ({}) => {
 
 export default DefaultBoard;
 
+interface DefaultBoard {
+  inputLetters?: string[];
+}
 const gridContainerStyle: CSS.Properties = {
   width: "70%",
   display: "grid",
@@ -36,7 +40,7 @@ const boxStyle = {
   fontSize: "24px",
 };
 
-const letters = [
+const defaultLetters = [
   "",
   "",
   "",
