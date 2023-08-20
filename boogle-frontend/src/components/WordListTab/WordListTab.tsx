@@ -1,14 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Tabs,
   Tab,
   List,
   ListItem,
   ListItemText,
-  Checkbox,
 } from "@mui/material";
 import TabPanel from "@mui/lab/TabPanel";
-import EditIcon from "@mui/icons-material/Edit";
 import { TabContext } from "@mui/lab";
 import { Players } from "../../stages/core";
 
@@ -19,14 +17,6 @@ const WordListTab: React.FC<WordListTabProps> = ({ players }) => {
     newValue: string,
   ) => {
     setSelectedTab(newValue);
-  };
-
-  const handleEditClick = (playerIndex: number, wordIndex: number) => {
-    // Handle editing word
-  };
-
-  const handleCheckboxToggle = (playerIndex: number, wordIndex: number) => {
-    // Handle checkbox toggle
   };
 
   return (

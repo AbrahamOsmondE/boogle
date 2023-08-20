@@ -1,35 +1,58 @@
 import React, { useEffect, useState } from "react";
 import CSS from "csstype";
 import { Players } from "../../stages/core";
-const BoggleBoard: React.FC<BoggleBoardProps> = ({ letters, setWord }) => {
-  const [selectedBoxes, setSelectedBoxes] = useState<number[]>([]);
+import { useAppSelector } from "../../app/hooks";
+import { selectGlobalName } from "../../redux/features/globalSlice";
+const BoggleBoard: React.FC<BoggleBoardProps> = ({ letters, setWord, players, setPlayers }) => {
+  const [selectedBoxes, setSelectedBoxes] = useState(new Set<number>());
+  const [lastIndex, setLastIndex] = useState(0)
+  const name = useAppSelector(selectGlobalName);
 
   const handleBoxClick = (index: number) => {
-    setSelectedBoxes([index]);
+    setSelectedBoxes(prev => new Set(prev.add(index)));
+    setLastIndex(index)
   };
 
   const handleBoxTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    if (selectedBoxes.length === 0) return;
+    event.stopPropagation()
+    if (selectedBoxes.size === 0) return;
 
     const touch = event.touches[0];
     const checkbox = document.elementFromPoint(touch.clientX, touch.clientY);
 
-    const indexChar = checkbox?.getAttribute("data-key") as string | null;
+    if (!checkbox) return;
+
+    const indexChar = checkbox.getAttribute("data-key") as string | null;
     if (!indexChar) return;
 
     const index = parseInt(indexChar);
 
     if (
-      !selectedBoxes.includes(index) &&
-      areIndicesAdjacent(selectedBoxes[selectedBoxes.length - 1], index)
+      !selectedBoxes.has(index) &&
+      areIndicesAdjacent(lastIndex, index)
     ) {
-      setSelectedBoxes([...selectedBoxes, index]);
+      setLastIndex(index)
+      setSelectedBoxes(prev => new Set(prev.add(index)));
     }
   };
 
   const handleBoxTouchEnd = () => {
-    setSelectedBoxes([]);
+    const word = Array.from(selectedBoxes)
+    .map((index) => letters[index])
+    .join("")
+    .toUpperCase() || " ";
+
+    if (word.length > 2) {
+      setPlayers({
+        ...players,
+        [name]: [...players[name], {
+          word: word,
+          checked: true
+        }]
+      })
+    }
+
+    setSelectedBoxes(new Set<number>());
   };
 
   const areIndicesAdjacent = (index1: number, index2: number) => {
@@ -47,7 +70,7 @@ const BoggleBoard: React.FC<BoggleBoardProps> = ({ letters, setWord }) => {
     return rowDiff <= 1 && colDiff <= 1;
   };
 
-  const isBoxSelected = (index: number) => selectedBoxes.includes(index);
+  const isBoxSelected = (index: number) => selectedBoxes.has(index);
 
   useEffect(() => {
     const preventDefaultTouchmove = (event: TouchEvent) => {
@@ -60,13 +83,13 @@ const BoggleBoard: React.FC<BoggleBoardProps> = ({ letters, setWord }) => {
 
     return () => {
       document.removeEventListener("touchmove", preventDefaultTouchmove);
-      setSelectedBoxes([]);
+      setSelectedBoxes(new Set<number>());
     };
   }, []);
 
   useEffect(() => {
     const newWord =
-      selectedBoxes
+      Array.from(selectedBoxes)
         .map((index) => letters[index])
         .join("")
         .toUpperCase() || " ";

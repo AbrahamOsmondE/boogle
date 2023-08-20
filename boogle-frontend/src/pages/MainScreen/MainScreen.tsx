@@ -38,6 +38,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ setScreen }) => {
       </Typography>
       <FormControl>
         <OutlinedInput
+          name='boogle-username'
           error={error}
           id="outlined-basic"
           placeholder={error ? "Enter name!" : "Enter your name"}

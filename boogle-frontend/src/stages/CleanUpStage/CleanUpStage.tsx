@@ -8,6 +8,7 @@ import WordListTabCleanUp from "../../components/WordListTab/WordListTabCleanup"
 import { Players } from "../core";
 import DefaultBoard from "../../components/BoggleBoard/DefaultBoard";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
+import { useAppSelector } from "../../app/hooks";
 
 const CleanUpStage: React.FC<CleanUpStageProps> = ({
   setScreen,
@@ -34,6 +35,7 @@ const CleanUpStage: React.FC<CleanUpStageProps> = ({
     if (time === 0) setStage(1);
   }, [time]);
 
+
   return (
     <div style={containerStyle}>
       {count !== 0 ? (
@@ -52,8 +54,7 @@ const CleanUpStage: React.FC<CleanUpStageProps> = ({
             {" "}
             {word}
           </Typography>
-          <DefaultBoard />
-          <WordListTabCleanUp players={players} />
+          <WordListTabCleanUp players={players} setPlayers={setPlayers}/>
         </>
       )}
     </div>
