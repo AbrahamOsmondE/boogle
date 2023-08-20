@@ -5,7 +5,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import { TabContext } from "@mui/lab";
 import { Players } from "../../stages/core";
 
-const WordListTab: React.FC<WordListTabProps> = ({players}) => {
+const WordListTabCleanUp: React.FC<WordListTabCleanUpProps> = ({players}) => {
   const [selectedTab, setSelectedTab] = useState('0');
   const handleTabChange = (event:React.SyntheticEvent<Element, Event>, newValue:string) => {
     setSelectedTab(newValue);
@@ -52,6 +52,14 @@ const WordListTab: React.FC<WordListTabProps> = ({players}) => {
               {players[playerName].map((word, wordIndex) => (
                 <ListItem key={wordIndex}>
                   <ListItemText primary={word.word} primaryTypographyProps={{ variant: 'body2', style: { fontSize: '15px' } }}/>
+                  <Checkbox
+                    checked={players[playerIndex][wordIndex].checked}
+                    onClick={() => handleCheckboxToggle(playerIndex, wordIndex)}
+                    style={{marginRight: '10px', color:'white'}}
+                  />
+                  <EditIcon
+                    onClick={() => handleEditClick(playerIndex, wordIndex)}
+                  />
                 </ListItem>
               ))}
             </List>
@@ -62,8 +70,8 @@ const WordListTab: React.FC<WordListTabProps> = ({players}) => {
   );
 };
 
-interface WordListTabProps {
+export interface WordListTabCleanUpProps {
   players: Players
 }
 
-export default WordListTab;
+export default WordListTabCleanUp;

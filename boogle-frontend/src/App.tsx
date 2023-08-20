@@ -4,7 +4,7 @@ import MainScreen from "./pages/MainScreen/MainScreen";
 import PracticeScreen from "./pages/PracticeScreen/PracticeScreen";
 
 function App() {
-  const [screen, setScreen] = useState(1);
+  const [screen, setScreen] = useState(0);
 
   const renderScreen = () => {
     switch (screen) {

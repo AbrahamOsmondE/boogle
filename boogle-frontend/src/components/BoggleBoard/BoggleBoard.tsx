@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import Box from "@mui/material/Box";
 import CSS from "csstype";
+import { Players } from "../../stages/core";
 const BoggleBoard: React.FC<BoggleBoardProps> = ({letters, setWord}) => {
   const [selectedBoxes, setSelectedBoxes] = useState<number[]>([]);
 
@@ -9,6 +9,7 @@ const BoggleBoard: React.FC<BoggleBoardProps> = ({letters, setWord}) => {
   };
 
   const handleBoxTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+    event.preventDefault()
     if (selectedBoxes.length === 0) return
 
     const touch = event.touches[0]
@@ -83,6 +84,8 @@ export default BoggleBoard;
 interface BoggleBoardProps {
   letters: string[]
   setWord: (value: string) => void
+  players: Players
+  setPlayers: (value: Players) => void
 }
 
 const gridContainerStyle: CSS.Properties = {
