@@ -6,25 +6,56 @@ import TextCountdown from "../../components/TextCountdown/TextCountdown";
 import { Typography } from "@mui/material";
 import WordListTabCleanUp from "../../components/WordListTab/WordListTabCleanup";
 import { Players } from "../core";
+import DefaultBoard from "../../components/BoggleBoard/DefaultBoard";
+import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
 
-const CleanUpStage: React.FC<CleanUpStageProps> = ({ setScreen, setStage, players, setPlayers }) => {
+const CleanUpStage: React.FC<CleanUpStageProps> = ({
+  setScreen,
+  setStage,
+  players,
+  setPlayers,
+}) => {
+  const [count, setCount] = useState(3);
   const [time, setTime] = useState(60);
-  const [word, setWord] = useState(' ');
+  const [word, setWord] = useState(" ");
 
   useEffect(() => {
-    if (time === 0) setStage(1)
-  }, [time])
+    window.scrollTo(0, document.body.scrollHeight);
+    const timer = setInterval(() => {
+      setCount((prevCount) => (prevCount > 1 ? prevCount - 1 : 0));
+    }, 1000);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (time === 0) setStage(1);
+  }, [time]);
 
   return (
     <div style={containerStyle}>
+      {count !== 0 ? (
+        <ScreenCountDown title={"Clean up!"} count={count} />
+      ) : (
+        <>
           <TextCountdown count={time} setCount={setTime} />
-          <Typography variant="h4" align="center" style={{
-              minHeight: '8vh', // Set a minimum height to maintain space
-              display: word ? 'block' : 'none', // Show or hide based on 'word' presence
-            }}> Clean Up Stage
+          <Typography
+            variant="h4"
+            align="center"
+            style={{
+              minHeight: "8vh", // Set a minimum height to maintain space
+              display: word ? "block" : "none", // Show or hide based on 'word' presence
+            }}
+          >
+            {" "}
+            {word}
           </Typography>
-          <BoggleBoard letters={Array(16).fill('')} setWord={setWord} players={players} setPlayers={setPlayers}></BoggleBoard>
-          <WordListTabCleanUp players={players}/>
+          <DefaultBoard />
+          <WordListTabCleanUp players={players} />
+        </>
+      )}
     </div>
   );
 };
@@ -35,7 +66,7 @@ interface CleanUpStageProps {
   setScreen: (value: number) => void;
   setStage: (value: number) => void;
   players: Players;
-  setPlayers: (value: Players) => void
+  setPlayers: (value: Players) => void;
 }
 
 const containerStyle: CSS.Properties = {
@@ -50,6 +81,5 @@ const containerStyle: CSS.Properties = {
   justifyContent: "center",
   fontSize: "calc(10px + 2vmin)",
   color: "white",
-  overflow: 'hidden'
+  overflow: "hidden",
 };
-

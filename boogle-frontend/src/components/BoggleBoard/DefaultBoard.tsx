@@ -6,7 +6,7 @@ const DefaultBoard: React.FC = ({}) => {
   return (
     <div style={gridContainerStyle}>
       {letters.map((letter, index) => (
-        <div data-key={index} key={index} style={boxStyle} >
+        <div data-key={index} key={index} style={boxStyle}>
           {letter}
         </div>
       ))}
@@ -22,7 +22,7 @@ const gridContainerStyle: CSS.Properties = {
   gridTemplateColumns: "repeat(4, 1fr)",
   gap: "20px",
   padding: "0px 50px 0px 50px",
-  touchAction: 'none'
+  touchAction: "none",
 };
 
 const boxStyle = {

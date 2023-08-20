@@ -1,23 +1,29 @@
 import React, { useState } from "react";
-import { Button, Stack, Dialog, Typography, OutlinedInput, FormControl } from "@mui/material";
+import {
+  Button,
+  Stack,
+  Dialog,
+  Typography,
+  OutlinedInput,
+  FormControl,
+} from "@mui/material";
 import PracticeDialog from "../../components/PraticeDialog/PracticeDialog";
-import CSS from 'csstype'
-import { useAppSelector, useAppDispatch } from '../../app/hooks'
+import CSS from "csstype";
+import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { setGlobalName } from "../../redux/features/globalSlice";
-
 
 const MainScreen: React.FC<MainScreenProps> = ({ setScreen }) => {
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState('')
+  const [name, setName] = useState("");
 
-  const [error, setError] = useState(false)
+  const [error, setError] = useState(false);
 
-  const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch();
 
   const handleSubmit = () => {
-    dispatch(setGlobalName(name))
-    return
-  }
+    dispatch(setGlobalName(name));
+    return;
+  };
   const handleClickOpen = () => {
     setOpen(true);
   };
@@ -34,11 +40,11 @@ const MainScreen: React.FC<MainScreenProps> = ({ setScreen }) => {
         <OutlinedInput
           error={error}
           id="outlined-basic"
-          placeholder={error ? 'Enter name!' : "Enter your name"}
+          placeholder={error ? "Enter name!" : "Enter your name"}
           value={name}
           onChange={(e) => {
-            setName(e.target.value)
-            setError(false)
+            setName(e.target.value);
+            setError(false);
           }}
           style={{ backgroundColor: "white", marginBottom: "2vh" }}
         />
@@ -49,25 +55,29 @@ const MainScreen: React.FC<MainScreenProps> = ({ setScreen }) => {
         </Typography>
         <Stack spacing={2} direction="row">
           <Button
-            style={{ backgroundColor: 'grey' }}
+            style={{ backgroundColor: "grey" }}
             variant="contained"
             onClick={() => {
               if (!name) {
-                setError(true)
-                return
+                setError(true);
+                return;
               }
-              handleSubmit()
+              handleSubmit();
               setScreen(1);
             }}
           >
             Practice
           </Button>
-          <Button style={{ backgroundColor: 'grey' }} variant="contained">Versus</Button>
+          <Button style={{ backgroundColor: "grey" }} variant="contained">
+            Versus
+          </Button>
         </Stack>
         <Typography variant="h6" gutterBottom style={{ color: "white" }}>
           Join a Room
         </Typography>
-        <Button style={{ backgroundColor: 'grey' }} variant="contained">Join</Button>
+        <Button style={{ backgroundColor: "grey" }} variant="contained">
+          Join
+        </Button>
       </Stack>
       <Dialog
         open={open}
@@ -94,7 +104,7 @@ const containerStyle: CSS.Properties = {
   justifyContent: "center",
   fontSize: "calc(10px + 2vmin)",
   color: "white",
-  overflow: 'hidden'
+  overflow: "hidden",
 };
 
 interface MainScreenProps {

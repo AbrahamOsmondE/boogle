@@ -9,13 +9,18 @@ import WordListTab from "../../components/WordListTab/WordListTab";
 import { Players } from "../core";
 import DefaultBoard from "../../components/BoggleBoard/DefaultBoard";
 
-const PlayStage: React.FC<PlayStageProps> = ({ setScreen, setStage, players, setPlayers }) => {
+const PlayStage: React.FC<PlayStageProps> = ({
+  setScreen,
+  setStage,
+  players,
+  setPlayers,
+}) => {
   const [count, setCount] = useState(3);
   const [time, setTime] = useState(10);
-  const [word, setWord] = useState(' ');
-  
+  const [word, setWord] = useState(" ");
+
   useEffect(() => {
-    window.scrollTo(0, document.body.scrollHeight)
+    window.scrollTo(0, document.body.scrollHeight);
     const timer = setInterval(() => {
       setCount((prevCount) => (prevCount > 1 ? prevCount - 1 : 0));
     }, 1000);
@@ -26,23 +31,44 @@ const PlayStage: React.FC<PlayStageProps> = ({ setScreen, setStage, players, set
   }, []);
 
   useEffect(() => {
-    if (time === 0) setStage(1)
-  }, [time])
+    if (time === 0) {
+      setWord("TIMES UP!");
+      const timer = setTimeout(() => {
+        setStage(1);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [time]);
 
   return (
     <div style={containerStyle}>
       {count !== 0 ? (
-        <ScreenCountDown count={count} />
+        <ScreenCountDown title={"Boggle!"} count={count} />
       ) : (
         <>
           <TextCountdown count={time} setCount={setTime} />
-          <Typography variant="h4" align="center" style={{
-              minHeight: '8vh', // Set a minimum height to maintain space
-              display: word ? 'block' : 'none', // Show or hide based on 'word' presence
-            }}> {word}
+          <Typography
+            variant="h4"
+            align="center"
+            style={{
+              minHeight: "8vh", // Set a minimum height to maintain space
+              display: word ? "block" : "none", // Show or hide based on 'word' presence
+            }}
+          >
+            {" "}
+            {word}
           </Typography>
-          <DefaultBoard />
-          <WordListTab players={players}/>
+          {time !== 0 ? (
+            <BoggleBoard
+              letters={letters}
+              setWord={setWord}
+              players={players}
+              setPlayers={setPlayers}
+            ></BoggleBoard>
+          ) : (
+            <DefaultBoard />
+          )}
+          <WordListTab players={players} />
         </>
       )}
     </div>
@@ -55,7 +81,7 @@ interface PlayStageProps {
   setScreen: (value: number) => void;
   setStage: (value: number) => void;
   players: Players;
-  setPlayers: (value: Players) => void
+  setPlayers: (value: Players) => void;
 }
 
 const containerStyle: CSS.Properties = {
@@ -70,5 +96,24 @@ const containerStyle: CSS.Properties = {
   justifyContent: "center",
   fontSize: "calc(10px + 2vmin)",
   color: "white",
-  overflow: 'hidden'
+  overflow: "hidden",
 };
+
+const letters = [
+  "A",
+  "B",
+  "C",
+  "D",
+  "E",
+  "F",
+  "G",
+  "H",
+  "I",
+  "J",
+  "K",
+  "L",
+  "M",
+  "N",
+  "O",
+  "P",
+];

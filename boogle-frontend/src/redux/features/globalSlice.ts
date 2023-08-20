@@ -1,16 +1,16 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import type { RootState } from '../../app/store'
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import type { RootState } from "../../app/store";
 
 interface GlobalState {
   name: string;
 }
 
 const initialState: GlobalState = {
-  name: '',
+  name: "",
 };
 
 const globalSlice = createSlice({
-  name: 'global',
+  name: "global",
   initialState,
   reducers: {
     setGlobalName: (state, action: PayloadAction<string>) => {
@@ -22,6 +22,6 @@ const globalSlice = createSlice({
 export const { setGlobalName } = globalSlice.actions;
 
 // Other code such as selectors can use the imported `RootState` type
-export const selectCount = (state: RootState) => state.global.name
+export const selectGlobalName = (state: RootState) => state.global.name;
 
-export default globalSlice.reducer
+export default globalSlice.reducer;

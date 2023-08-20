@@ -16,12 +16,12 @@ const TextCountdown: React.FC<TextCountdownProps> = ({ count, setCount }) => {
     }
   }, [count]);
 
-  const formatTime = (timeInSeconds:number) => {
+  const formatTime = (timeInSeconds: number) => {
     const minutes = Math.floor(timeInSeconds / 60);
     const seconds = timeInSeconds % 60;
 
     if (minutes > 0) {
-      return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+      return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
     }
     return seconds;
   };
@@ -38,7 +38,7 @@ const TextCountdown: React.FC<TextCountdownProps> = ({ count, setCount }) => {
 
 interface TextCountdownProps {
   count: number;
-  setCount: React.Dispatch<React.SetStateAction<number>>
+  setCount: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export default TextCountdown;

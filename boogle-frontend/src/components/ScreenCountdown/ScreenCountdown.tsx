@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import "./ScreenCountdown.css";
 
-const ScreenCountDown: React.FC<ScreenCountDownProps> = ({ count }) => {
+const ScreenCountDown: React.FC<ScreenCountDownProps> = ({ title, count }) => {
   return count !== 0 ? (
     <div className="countdown-overlay">
+      <h1 className="countdown-title">{title}</h1>
       <div className={`countdown-number-${count}`}>{count}</div>
     </div>
   ) : (
@@ -12,6 +13,7 @@ const ScreenCountDown: React.FC<ScreenCountDownProps> = ({ count }) => {
 };
 
 interface ScreenCountDownProps {
+  title: string;
   count: number;
 }
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import CSS from "csstype";
 import { Players } from "../../stages/core";
-const BoggleBoard: React.FC<BoggleBoardProps> = ({letters, setWord}) => {
+const BoggleBoard: React.FC<BoggleBoardProps> = ({ letters, setWord }) => {
   const [selectedBoxes, setSelectedBoxes] = useState<number[]>([]);
 
   const handleBoxClick = (index: number) => {
@@ -9,41 +9,43 @@ const BoggleBoard: React.FC<BoggleBoardProps> = ({letters, setWord}) => {
   };
 
   const handleBoxTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    if (selectedBoxes.length === 0) return
+    event.preventDefault();
+    if (selectedBoxes.length === 0) return;
 
-    const touch = event.touches[0]
+    const touch = event.touches[0];
     const checkbox = document.elementFromPoint(touch.clientX, touch.clientY);
 
-    const indexChar = checkbox?.getAttribute('data-key') as string | null
-    if (!indexChar) return
-    
-    const index = parseInt(indexChar)
+    const indexChar = checkbox?.getAttribute("data-key") as string | null;
+    if (!indexChar) return;
 
-    if (!selectedBoxes.includes(index) && areIndicesAdjacent(selectedBoxes[selectedBoxes.length - 1], index)) {
+    const index = parseInt(indexChar);
+
+    if (
+      !selectedBoxes.includes(index) &&
+      areIndicesAdjacent(selectedBoxes[selectedBoxes.length - 1], index)
+    ) {
       setSelectedBoxes([...selectedBoxes, index]);
     }
   };
-
 
   const handleBoxTouchEnd = () => {
     setSelectedBoxes([]);
   };
 
-  const areIndicesAdjacent = (index1:number, index2:number) => {
+  const areIndicesAdjacent = (index1: number, index2: number) => {
     const numCols = 4;
-  
+
     const row1 = Math.floor(index1 / numCols);
     const col1 = index1 % numCols;
-  
+
     const row2 = Math.floor(index2 / numCols);
     const col2 = index2 % numCols;
-  
+
     const rowDiff = Math.abs(row1 - row2);
     const colDiff = Math.abs(col1 - col2);
-  
+
     return rowDiff <= 1 && colDiff <= 1;
-  }
+  };
 
   const isBoxSelected = (index: number) => selectedBoxes.includes(index);
 
@@ -52,26 +54,36 @@ const BoggleBoard: React.FC<BoggleBoardProps> = ({letters, setWord}) => {
       event.preventDefault();
     };
 
-    document.addEventListener('touchmove', preventDefaultTouchmove, { passive: false });
+    document.addEventListener("touchmove", preventDefaultTouchmove, {
+      passive: false,
+    });
 
     return () => {
-      document.removeEventListener('touchmove', preventDefaultTouchmove);
-      setSelectedBoxes([])
+      document.removeEventListener("touchmove", preventDefaultTouchmove);
+      setSelectedBoxes([]);
     };
   }, []);
 
   useEffect(() => {
-    const newWord = selectedBoxes.map((index) => letters[index]).join('').toUpperCase() || ' '
-    setWord(newWord)
-  }, [selectedBoxes])
-  
+    const newWord =
+      selectedBoxes
+        .map((index) => letters[index])
+        .join("")
+        .toUpperCase() || " ";
+    setWord(newWord);
+  }, [selectedBoxes]);
+
   return (
     <div style={gridContainerStyle}>
       {letters.map((letter, index) => (
-        <div data-key={index} key={index} style={isBoxSelected(index) ? selectedBoxStyle : boxStyle} 
-        onTouchMove={(event) => handleBoxTouchMove(event)}
-        onTouchEnd={handleBoxTouchEnd}
-        onTouchStart={() => handleBoxClick(index)}>
+        <div
+          data-key={index}
+          key={index}
+          style={isBoxSelected(index) ? selectedBoxStyle : boxStyle}
+          onTouchMove={(event) => handleBoxTouchMove(event)}
+          onTouchEnd={handleBoxTouchEnd}
+          onTouchStart={() => handleBoxClick(index)}
+        >
           {letter}
         </div>
       ))}
@@ -82,10 +94,10 @@ const BoggleBoard: React.FC<BoggleBoardProps> = ({letters, setWord}) => {
 export default BoggleBoard;
 
 interface BoggleBoardProps {
-  letters: string[]
-  setWord: (value: string) => void
-  players: Players
-  setPlayers: (value: Players) => void
+  letters: string[];
+  setWord: (value: string) => void;
+  players: Players;
+  setPlayers: (value: Players) => void;
 }
 
 const gridContainerStyle: CSS.Properties = {
@@ -94,7 +106,7 @@ const gridContainerStyle: CSS.Properties = {
   gridTemplateColumns: "repeat(4, 1fr)",
   gap: "20px",
   padding: "0px 50px 0px 50px",
-  touchAction: 'none'
+  touchAction: "none",
 };
 
 const boxStyle = {

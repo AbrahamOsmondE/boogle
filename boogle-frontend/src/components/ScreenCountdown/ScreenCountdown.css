@@ -6,9 +6,16 @@
   height: 100%;
   background-color: rgba(0, 0, 0, 0.7);
   display: flex;
+  flex-direction: column; /* Add this to stack elements vertically */
   justify-content: center;
   align-items: center;
   z-index: 9999;
+}
+
+.countdown-title {
+  font-size: 2rem;
+  color: white;
+  margin-bottom: 1rem; /* Add some margin below the title */
 }
 
 .countdown-number-1 {
