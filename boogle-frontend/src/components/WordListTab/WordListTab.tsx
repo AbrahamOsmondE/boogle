@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { Tabs, Tab, List, ListItem, ListItemText } from "@mui/material";
 import TabPanel from "@mui/lab/TabPanel";
 import { TabContext } from "@mui/lab";
-import { Players } from "../../stages/core";
+import { Players, Solutions } from "../../stages/core";
 
-const WordListTab: React.FC<WordListTabProps> = ({ players }) => {
+const WordListTab: React.FC<WordListTabProps> = ({ players, solutions }) => {
   const [selectedTab, setSelectedTab] = useState("0");
   const handleTabChange = (
     event: React.SyntheticEvent<Element, Event>,
@@ -12,6 +12,12 @@ const WordListTab: React.FC<WordListTabProps> = ({ players }) => {
   ) => {
     setSelectedTab(newValue);
   };
+
+  const isInSolution = (word:string) => {
+    const sortedWord = word.split('').sort().join('');
+
+    return solutions[sortedWord]?.includes(word)
+  }
 
   return (
     <TabContext value={selectedTab}>
@@ -64,7 +70,7 @@ const WordListTab: React.FC<WordListTabProps> = ({ players }) => {
                     primary={word.word}
                     primaryTypographyProps={{
                       variant: "body2",
-                      style: { fontSize: "15px" },
+                      style: { fontSize: "15px", color: playerName === 'solutions' ? 'white' : isInSolution(word.word) ? 'green' : 'red' },
                     }}
                   />
                 </ListItem>
@@ -79,6 +85,7 @@ const WordListTab: React.FC<WordListTabProps> = ({ players }) => {
 
 interface WordListTabProps {
   players: Players;
+  solutions: Solutions;
 }
 
 export default WordListTab;

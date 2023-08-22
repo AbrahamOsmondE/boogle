@@ -12,3 +12,7 @@ export interface Words {
   word: string;
   checked: boolean;
 }
+
+export interface Solutions {
+  [key: string]: string[];
+}

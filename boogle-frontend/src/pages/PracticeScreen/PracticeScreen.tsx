@@ -2,10 +2,11 @@ import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 import PlayStage from "../../stages/PlayStage/PlayStage";
 import CleanUpStage from "../../stages/CleanUpStage/CleanUpStage";
-import { Players, StageEnum } from "../../stages/core";
+import { Players, Solutions, StageEnum, Words } from "../../stages/core";
 import { useAppSelector } from "../../app/hooks";
 import { selectGlobalName } from "../../redux/features/globalSlice";
 import ResultStage from "../../stages/ResultStage/ResultStage";
+import AWS from 'aws-sdk'
 
 const PracticeScreen: React.FC = () => {
   const [stage, setStage] = useState(0);
@@ -13,6 +14,7 @@ const PracticeScreen: React.FC = () => {
     useState({});
   const name = useAppSelector(selectGlobalName);
   const [letters, setLetters] = useState(generateRandomBoggleBoard());
+  const [solutions, setSolutions] = useState<Solutions>({});
 
   useEffect(() => {
     if (stage === 0) {
@@ -21,8 +23,57 @@ const PracticeScreen: React.FC = () => {
         [name]: [],
         solutions: [],
       });
+      setSolutions({})
     }
   }, [stage]);
+
+  const invokeLambda = async () => {
+    try {
+      const lambda = new AWS.Lambda({ region: 'ap-southeast-1' });
+      const modifiedLetters = letters.map(letter => letter === "Qu" ? "Q" : letter).join('')
+
+      const payload = {
+        board: modifiedLetters
+      }
+      const params = {
+        FunctionName: 'boogle-app',
+        InvocationType: 'RequestResponse',
+        Payload: JSON.stringify(payload)
+      };
+
+      const result = await lambda.invoke(params).promise();
+
+      const response = JSON.parse(JSON.parse(JSON.stringify(result.Payload!)))
+      const body = JSON.parse(response.body)
+
+      const squashedSolutions = body.solutions.reduce((result:Solutions, solution:Solutions) => {
+        const key = Object.keys(solution)[0]; // Get the key from the solution object
+        const value = solution[key]; // Get the array from the solution object
+        result[key] = result[key] ? result[key].concat(value) : value;
+        return result;
+      }, {});
+
+      setSolutions(squashedSolutions)
+
+      const squashedSquashedList = Object.values(squashedSolutions).flat() as string[]
+      const solutionPlayer:Words[] = squashedSquashedList.map(word => ({
+        word: word,
+        checked: true
+      }))
+      setPlayers({
+        ...players,
+        solutions:solutionPlayer
+      })
+    } catch (error) {
+      console.error('Error invoking Lambda function:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (letters && players.solutions?.length === 0 ) {
+      invokeLambda()
+    }
+  }, [letters])
 
   const renderStage = (stage: number) => {
     switch (stage) {
@@ -46,6 +97,7 @@ const PracticeScreen: React.FC = () => {
       case StageEnum.RESULT:
         return (
           <ResultStage
+            solutions={solutions}
             setStage={setStage}
             players={players}
             letters={letters}
