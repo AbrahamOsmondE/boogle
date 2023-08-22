@@ -10,7 +10,6 @@ import { useAppSelector } from "../../app/hooks";
 import { selectGlobalName } from "../../redux/features/globalSlice";
 
 const CleanUpStage: React.FC<CleanUpStageProps> = ({
-  setScreen,
   setStage,
   players,
   setPlayers,
@@ -102,7 +101,6 @@ const CleanUpStage: React.FC<CleanUpStageProps> = ({
 export default CleanUpStage;
 
 interface CleanUpStageProps {
-  setScreen: (value: number) => void;
   setStage: (value: number) => void;
   players: Players;
   setPlayers: (value: Players) => void;
