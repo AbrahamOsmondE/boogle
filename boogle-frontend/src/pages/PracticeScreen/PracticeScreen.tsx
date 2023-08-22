@@ -7,7 +7,7 @@ import { useAppSelector } from "../../app/hooks";
 import { selectGlobalName } from "../../redux/features/globalSlice";
 import ResultStage from "../../stages/ResultStage/ResultStage";
 
-const PracticeScreen: React.FC<PracticeScreenProps> = ({ setScreen }) => {
+const PracticeScreen: React.FC = () => {
   const [stage, setStage] = useState(0);
   const [players, setPlayers]: [Players, Dispatch<SetStateAction<Players>>] =
     useState({});
@@ -29,7 +29,6 @@ const PracticeScreen: React.FC<PracticeScreenProps> = ({ setScreen }) => {
       case StageEnum.PLAY:
         return (
           <PlayStage
-            setScreen={setScreen}
             setStage={setStage}
             players={players}
             setPlayers={setPlayers}
@@ -39,7 +38,6 @@ const PracticeScreen: React.FC<PracticeScreenProps> = ({ setScreen }) => {
       case StageEnum.CLEANUP:
         return (
           <CleanUpStage
-            setScreen={setScreen}
             setStage={setStage}
             players={players}
             setPlayers={setPlayers}
@@ -48,10 +46,8 @@ const PracticeScreen: React.FC<PracticeScreenProps> = ({ setScreen }) => {
       case StageEnum.RESULT:
         return (
           <ResultStage
-            setScreen={setScreen}
             setStage={setStage}
             players={players}
-            setPlayers={setPlayers}
             letters={letters}
           />
         );
@@ -61,10 +57,6 @@ const PracticeScreen: React.FC<PracticeScreenProps> = ({ setScreen }) => {
 };
 
 export default PracticeScreen;
-
-interface PracticeScreenProps {
-  setScreen: (value: number) => void;
-}
 
 const generateRandomBoggleBoard = () => {
   const boggleDice = [

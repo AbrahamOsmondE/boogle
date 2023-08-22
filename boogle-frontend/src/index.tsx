@@ -1,19 +1,32 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
-import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { Provider } from "react-redux";
 import { store } from "./app/store";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import MainScreen from "./pages/MainScreen/MainScreen";
+import PracticeScreen from "./pages/PracticeScreen/PracticeScreen";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement,
 );
 
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <MainScreen />,
+  },
+  {
+    path: "/practice",
+    element: <PracticeScreen />
+  }
+])
+
 root.render(
   <React.StrictMode>
     <Provider store={store}>
-      <App />
+      <RouterProvider router={router}/>
     </Provider>
   </React.StrictMode>,
 );

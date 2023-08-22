@@ -1,25 +1,24 @@
 import React, { useEffect, useState } from "react";
 
 import CSS from "csstype";
-import BoggleBoard from "../../components/BoggleBoard/BoggleBoard";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
-import TextCountdown from "../../components/TextCountdown/TextCountdown";
 import { Button, Stack, Typography } from "@mui/material";
 import WordListTab from "../../components/WordListTab/WordListTab";
 import { Players, Words } from "../core";
 import DefaultBoard from "../../components/BoggleBoard/DefaultBoard";
 import { useAppSelector } from "../../app/hooks";
 import { selectGlobalName } from "../../redux/features/globalSlice";
+import { useNavigate } from "react-router-dom";
 
 const ResultStage: React.FC<ResultStageProps> = ({
-  setScreen,
   setStage,
   players,
-  setPlayers,
   letters,
 }) => {
   const [count, setCount] = useState(3);
   const name = useAppSelector(selectGlobalName);
+
+  const navigate = useNavigate();
 
   const countScore = (player: Words[]) => {
     return player.reduce((res, cur) => {
@@ -85,7 +84,7 @@ const ResultStage: React.FC<ResultStageProps> = ({
                 }}
                 variant="contained"
                 onClick={() => {
-                  setScreen(0);
+                  navigate('/')
                 }}
               >
                 Main Menu
@@ -115,9 +114,7 @@ const ResultStage: React.FC<ResultStageProps> = ({
 export default ResultStage;
 
 interface ResultStageProps {
-  setScreen: (value: number) => void;
   setStage: (value: number) => void;
-  setPlayers: (value: Players) => void;
   players: Players;
   letters: string[];
 }
@@ -135,4 +132,5 @@ const containerStyle: CSS.Properties = {
   fontSize: "calc(10px + 2vmin)",
   color: "white",
   overflow: "hidden",
+  textAlign: "center"
 };

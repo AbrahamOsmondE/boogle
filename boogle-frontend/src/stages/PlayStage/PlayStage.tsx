@@ -5,14 +5,10 @@ import BoggleBoard from "../../components/BoggleBoard/BoggleBoard";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
 import TextCountdown from "../../components/TextCountdown/TextCountdown";
 import { Typography } from "@mui/material";
-import WordListTab from "../../components/WordListTab/WordListTab";
 import { Players } from "../core";
 import DefaultBoard from "../../components/BoggleBoard/DefaultBoard";
-import { useAppSelector } from "../../app/hooks";
-import { selectGlobalName } from "../../redux/features/globalSlice";
 
 const PlayStage: React.FC<PlayStageProps> = ({
-  setScreen,
   setStage,
   players,
   setPlayers,
@@ -21,7 +17,6 @@ const PlayStage: React.FC<PlayStageProps> = ({
   const [count, setCount] = useState(3);
   const [time, setTime] = useState(180);
   const [word, setWord] = useState(" ");
-  const name = useAppSelector(selectGlobalName);
 
   useEffect(() => {
     window.scrollTo(0, document.body.scrollHeight);
@@ -80,7 +75,6 @@ const PlayStage: React.FC<PlayStageProps> = ({
 export default PlayStage;
 
 interface PlayStageProps {
-  setScreen: (value: number) => void;
   setStage: (value: number) => void;
   players: Players;
   setPlayers: (value: Players) => void;
