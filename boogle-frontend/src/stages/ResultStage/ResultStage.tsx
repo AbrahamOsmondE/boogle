@@ -4,7 +4,7 @@ import CSS from "csstype";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
 import { Button, Stack, Typography } from "@mui/material";
 import WordListTab from "../../components/WordListTab/WordListTab";
-import { Players, Words } from "../core";
+import { Players, Solutions, Words } from "../core";
 import DefaultBoard from "../../components/BoggleBoard/DefaultBoard";
 import { useAppSelector } from "../../app/hooks";
 import { selectGlobalName } from "../../redux/features/globalSlice";
@@ -14,12 +14,17 @@ const ResultStage: React.FC<ResultStageProps> = ({
   setStage,
   players,
   letters,
+  solutions
 }) => {
   const [count, setCount] = useState(3);
   const name = useAppSelector(selectGlobalName);
 
   const navigate = useNavigate();
+  const isInSolution = (word:string) => {
+    const sortedWord = word.split('').sort().join('');
 
+    return solutions[sortedWord]?.includes(word)
+  }
   const countScore = (player: Words[]) => {
     return player.reduce((res, cur) => {
       if (!cur.checked) return res;
@@ -37,7 +42,7 @@ const ResultStage: React.FC<ResultStageProps> = ({
       } else if (wordLength >= 3) {
         score = 1;
       }
-      return res + score;
+      return isInSolution(cur.word) ? res + score : res - score;
     }, 0);
   };
 
@@ -104,7 +109,7 @@ const ResultStage: React.FC<ResultStageProps> = ({
             </Stack>
           </Stack>
           <DefaultBoard inputLetters={letters} />
-          <WordListTab players={players} />
+          <WordListTab players={players} solutions={solutions}/>
         </>
       )}
     </div>
@@ -114,6 +119,7 @@ const ResultStage: React.FC<ResultStageProps> = ({
 export default ResultStage;
 
 interface ResultStageProps {
+  solutions: Solutions;
   setStage: (value: number) => void;
   players: Players;
   letters: string[];

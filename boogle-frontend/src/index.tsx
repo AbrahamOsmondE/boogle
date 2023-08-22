@@ -7,6 +7,13 @@ import { store } from "./app/store";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import MainScreen from "./pages/MainScreen/MainScreen";
 import PracticeScreen from "./pages/PracticeScreen/PracticeScreen";
+import AWS from 'aws-sdk'
+
+AWS.config.update({
+  accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.REACT_APP_AWS_SECRET_ACCESS_KEY,
+  region: process.env.REACT_APP_AWS_DEFAULT_REGION,
+});
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement,
