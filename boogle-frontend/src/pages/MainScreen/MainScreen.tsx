@@ -14,17 +14,21 @@ import {
   selectGlobalName,
   setGlobalName,
 } from "../../redux/features/globalSlice";
+import { useNavigate } from "react-router-dom";
 
-const MainScreen: React.FC<MainScreenProps> = ({ setScreen }) => {
+const MainScreen: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
 
   const [error, setError] = useState(false);
   const username = useAppSelector(selectGlobalName);
 
+  const navigate = useNavigate();
+
   const dispatch = useAppDispatch();
 
   const handleSubmit = () => {
+    localStorage.setItem("name", name);
     dispatch(setGlobalName(name));
     return;
   };
@@ -37,7 +41,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ setScreen }) => {
   };
 
   useEffect(() => {
-    setName(username);
+    const name = localStorage.getItem("name");
+    if (name) setName(name);
   }, []);
 
   return (
@@ -73,7 +78,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ setScreen }) => {
                 return;
               }
               handleSubmit();
-              setScreen(1);
+              navigate("/practice");
             }}
           >
             Practice
@@ -94,7 +99,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ setScreen }) => {
         onClose={handleClose}
         aria-labelledby="responsive-dialog-title"
       >
-        <PracticeDialog setOpen={setOpen} setScreen={setScreen} />
+        <PracticeDialog setOpen={setOpen} />
       </Dialog>
     </div>
   );
@@ -115,8 +120,5 @@ const containerStyle: CSS.Properties = {
   fontSize: "calc(10px + 2vmin)",
   color: "white",
   overflow: "hidden",
+  textAlign: "center",
 };
-
-interface MainScreenProps {
-  setScreen: (value: number) => void;
-}

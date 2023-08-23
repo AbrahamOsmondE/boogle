@@ -10,14 +10,13 @@ import { useAppSelector } from "../../app/hooks";
 import { selectGlobalName } from "../../redux/features/globalSlice";
 
 const CleanUpStage: React.FC<CleanUpStageProps> = ({
-  setScreen,
   setStage,
   players,
   setPlayers,
 }) => {
   const [count, setCount] = useState(3);
   const [time, setTime] = useState(180);
-  const name = useAppSelector(selectGlobalName);
+  const name = localStorage.getItem("name")!;
 
   const countScore = (player: Words[]) => {
     return player.reduce((res, cur) => {
@@ -102,7 +101,6 @@ const CleanUpStage: React.FC<CleanUpStageProps> = ({
 export default CleanUpStage;
 
 interface CleanUpStageProps {
-  setScreen: (value: number) => void;
   setStage: (value: number) => void;
   players: Players;
   setPlayers: (value: Players) => void;

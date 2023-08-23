@@ -1,26 +1,30 @@
 import React, { useEffect, useState } from "react";
 
 import CSS from "csstype";
-import BoggleBoard from "../../components/BoggleBoard/BoggleBoard";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
-import TextCountdown from "../../components/TextCountdown/TextCountdown";
 import { Button, Stack, Typography } from "@mui/material";
 import WordListTab from "../../components/WordListTab/WordListTab";
-import { Players, Words } from "../core";
+import { Players, Solutions, Words } from "../core";
 import DefaultBoard from "../../components/BoggleBoard/DefaultBoard";
 import { useAppSelector } from "../../app/hooks";
 import { selectGlobalName } from "../../redux/features/globalSlice";
+import { useNavigate } from "react-router-dom";
 
 const ResultStage: React.FC<ResultStageProps> = ({
-  setScreen,
   setStage,
   players,
-  setPlayers,
   letters,
+  solutions,
 }) => {
   const [count, setCount] = useState(3);
-  const name = useAppSelector(selectGlobalName);
+  const name = localStorage.getItem("name")!;
 
+  const navigate = useNavigate();
+  const isInSolution = (word: string) => {
+    const sortedWord = word.split("").sort().join("");
+
+    return solutions[sortedWord]?.includes(word);
+  };
   const countScore = (player: Words[]) => {
     return player.reduce((res, cur) => {
       if (!cur.checked) return res;
@@ -38,7 +42,7 @@ const ResultStage: React.FC<ResultStageProps> = ({
       } else if (wordLength >= 3) {
         score = 1;
       }
-      return res + score;
+      return isInSolution(cur.word) ? res + score : res - score;
     }, 0);
   };
 
@@ -85,7 +89,7 @@ const ResultStage: React.FC<ResultStageProps> = ({
                 }}
                 variant="contained"
                 onClick={() => {
-                  setScreen(0);
+                  navigate("/");
                 }}
               >
                 Main Menu
@@ -105,7 +109,7 @@ const ResultStage: React.FC<ResultStageProps> = ({
             </Stack>
           </Stack>
           <DefaultBoard inputLetters={letters} />
-          <WordListTab players={players} />
+          <WordListTab players={players} solutions={solutions} />
         </>
       )}
     </div>
@@ -115,9 +119,8 @@ const ResultStage: React.FC<ResultStageProps> = ({
 export default ResultStage;
 
 interface ResultStageProps {
-  setScreen: (value: number) => void;
+  solutions: Solutions;
   setStage: (value: number) => void;
-  setPlayers: (value: Players) => void;
   players: Players;
   letters: string[];
 }
@@ -135,4 +138,5 @@ const containerStyle: CSS.Properties = {
   fontSize: "calc(10px + 2vmin)",
   color: "white",
   overflow: "hidden",
+  textAlign: "center",
 };
