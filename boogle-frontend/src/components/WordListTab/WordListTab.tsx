@@ -13,11 +13,11 @@ const WordListTab: React.FC<WordListTabProps> = ({ players, solutions }) => {
     setSelectedTab(newValue);
   };
 
-  const isInSolution = (word:string) => {
-    const sortedWord = word.split('').sort().join('');
+  const isInSolution = (word: string) => {
+    const sortedWord = word.split("").sort().join("");
 
-    return solutions[sortedWord]?.includes(word)
-  }
+    return solutions[sortedWord]?.includes(word);
+  };
 
   return (
     <TabContext value={selectedTab}>
@@ -70,7 +70,15 @@ const WordListTab: React.FC<WordListTabProps> = ({ players, solutions }) => {
                     primary={word.word}
                     primaryTypographyProps={{
                       variant: "body2",
-                      style: { fontSize: "15px", color: playerName === 'solutions' ? 'white' : isInSolution(word.word) ? 'green' : 'red' },
+                      style: {
+                        fontSize: "15px",
+                        color:
+                          playerName === "solutions"
+                            ? "white"
+                            : isInSolution(word.word)
+                            ? "green"
+                            : "red",
+                      },
                     }}
                   />
                 </ListItem>

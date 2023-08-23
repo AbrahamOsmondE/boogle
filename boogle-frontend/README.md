@@ -14,7 +14,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 - npm start
 
 To test on mobile phone:
+
 - cloudflared tunnel --url http://localhost:3000
 
 then open the link provided on your phone.
-

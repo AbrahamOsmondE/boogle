@@ -7,7 +7,7 @@ import { store } from "./app/store";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import MainScreen from "./pages/MainScreen/MainScreen";
 import PracticeScreen from "./pages/PracticeScreen/PracticeScreen";
-import AWS from 'aws-sdk'
+import AWS from "aws-sdk";
 
 AWS.config.update({
   accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID,
@@ -26,14 +26,14 @@ const router = createBrowserRouter([
   },
   {
     path: "/practice",
-    element: <PracticeScreen />
-  }
-])
+    element: <PracticeScreen />,
+  },
+]);
 
 root.render(
   <React.StrictMode>
     <Provider store={store}>
-      <RouterProvider router={router}/>
+      <RouterProvider router={router} />
     </Provider>
   </React.StrictMode>,
 );

@@ -16,7 +16,7 @@ const CleanUpStage: React.FC<CleanUpStageProps> = ({
 }) => {
   const [count, setCount] = useState(3);
   const [time, setTime] = useState(180);
-  const name = useAppSelector(selectGlobalName);
+  const name = localStorage.getItem("name")!;
 
   const countScore = (player: Words[]) => {
     return player.reduce((res, cur) => {

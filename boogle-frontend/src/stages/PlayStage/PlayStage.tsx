@@ -15,7 +15,7 @@ const PlayStage: React.FC<PlayStageProps> = ({
   letters,
 }) => {
   const [count, setCount] = useState(3);
-  const [time, setTime] = useState(10);
+  const [time, setTime] = useState(180);
   const [word, setWord] = useState(" ");
 
   useEffect(() => {

@@ -14,17 +14,17 @@ const ResultStage: React.FC<ResultStageProps> = ({
   setStage,
   players,
   letters,
-  solutions
+  solutions,
 }) => {
   const [count, setCount] = useState(3);
-  const name = useAppSelector(selectGlobalName);
+  const name = localStorage.getItem("name")!;
 
   const navigate = useNavigate();
-  const isInSolution = (word:string) => {
-    const sortedWord = word.split('').sort().join('');
+  const isInSolution = (word: string) => {
+    const sortedWord = word.split("").sort().join("");
 
-    return solutions[sortedWord]?.includes(word)
-  }
+    return solutions[sortedWord]?.includes(word);
+  };
   const countScore = (player: Words[]) => {
     return player.reduce((res, cur) => {
       if (!cur.checked) return res;
@@ -89,7 +89,7 @@ const ResultStage: React.FC<ResultStageProps> = ({
                 }}
                 variant="contained"
                 onClick={() => {
-                  navigate('/')
+                  navigate("/");
                 }}
               >
                 Main Menu
@@ -109,7 +109,7 @@ const ResultStage: React.FC<ResultStageProps> = ({
             </Stack>
           </Stack>
           <DefaultBoard inputLetters={letters} />
-          <WordListTab players={players} solutions={solutions}/>
+          <WordListTab players={players} solutions={solutions} />
         </>
       )}
     </div>
@@ -138,5 +138,5 @@ const containerStyle: CSS.Properties = {
   fontSize: "calc(10px + 2vmin)",
   color: "white",
   overflow: "hidden",
-  textAlign: "center"
+  textAlign: "center",
 };

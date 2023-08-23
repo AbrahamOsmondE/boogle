@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import CSS from "csstype";
 import { Players } from "../../stages/core";
-import { useAppSelector } from "../../app/hooks";
-import { selectGlobalName } from "../../redux/features/globalSlice";
 const BoggleBoard: React.FC<BoggleBoardProps> = ({
   letters,
   setWord,
@@ -11,7 +9,7 @@ const BoggleBoard: React.FC<BoggleBoardProps> = ({
 }) => {
   const [selectedBoxes, setSelectedBoxes] = useState<number[]>([]);
   const [lastIndex, setLastIndex] = useState(0);
-  const name = useAppSelector(selectGlobalName);
+  const name = localStorage.getItem("name")!;
 
   const handlePointerDown = (e: React.PointerEvent, index: number) => {
     e.currentTarget.releasePointerCapture(e.pointerId);

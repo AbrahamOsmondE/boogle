@@ -28,6 +28,7 @@ const MainScreen: React.FC = () => {
   const dispatch = useAppDispatch();
 
   const handleSubmit = () => {
+    localStorage.setItem("name", name);
     dispatch(setGlobalName(name));
     return;
   };
@@ -40,7 +41,8 @@ const MainScreen: React.FC = () => {
   };
 
   useEffect(() => {
-    setName(username);
+    const name = localStorage.getItem("name");
+    if (name) setName(name);
   }, []);
 
   return (
@@ -76,7 +78,7 @@ const MainScreen: React.FC = () => {
                 return;
               }
               handleSubmit();
-              navigate('/practice');
+              navigate("/practice");
             }}
           >
             Practice
@@ -118,6 +120,5 @@ const containerStyle: CSS.Properties = {
   fontSize: "calc(10px + 2vmin)",
   color: "white",
   overflow: "hidden",
-  textAlign: "center"
+  textAlign: "center",
 };
-
