@@ -3,8 +3,6 @@ import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import PlayStage from "../../stages/PlayStage/PlayStage";
 import CleanUpStage from "../../stages/CleanUpStage/CleanUpStage";
 import { Players, Solutions, StageEnum, Words } from "../../stages/core";
-import { useAppSelector } from "../../app/hooks";
-import { selectGlobalName } from "../../redux/features/globalSlice";
 import ResultStage from "../../stages/ResultStage/ResultStage";
 import AWS from "aws-sdk";
 

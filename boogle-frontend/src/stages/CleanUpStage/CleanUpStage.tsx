@@ -6,8 +6,6 @@ import { Button, Stack, Typography } from "@mui/material";
 import WordListTabCleanUp from "../../components/WordListTab/WordListTabCleanup";
 import { Players, Words } from "../core";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
-import { useAppSelector } from "../../app/hooks";
-import { selectGlobalName } from "../../redux/features/globalSlice";
 
 const CleanUpStage: React.FC<CleanUpStageProps> = ({
   setStage,

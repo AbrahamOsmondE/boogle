@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import "./ScreenCountdown.css";
 
 const ScreenCountDown: React.FC<ScreenCountDownProps> = ({ title, count }) => {

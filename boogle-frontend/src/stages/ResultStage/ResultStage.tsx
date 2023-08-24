@@ -6,8 +6,6 @@ import { Button, Stack, Typography } from "@mui/material";
 import WordListTab from "../../components/WordListTab/WordListTab";
 import { Players, Solutions, Words } from "../core";
 import DefaultBoard from "../../components/BoggleBoard/DefaultBoard";
-import { useAppSelector } from "../../app/hooks";
-import { selectGlobalName } from "../../redux/features/globalSlice";
 import { useNavigate } from "react-router-dom";
 
 const ResultStage: React.FC<ResultStageProps> = ({

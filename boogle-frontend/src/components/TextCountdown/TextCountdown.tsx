@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Icon, Stack, Typography } from "@mui/material";
+import React, { useEffect } from "react";
+import { Stack, Typography } from "@mui/material";
 import HourglassEmptyIcon from "@mui/icons-material/AccessTime";
 import "./TextCountdown.css";
 

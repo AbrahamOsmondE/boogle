@@ -1,0 +1,14 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY node_modules ./node_modules
+COPY dist ./
+
+COPY package.json ./
+
+ENV NODE_ENV=production
+
+EXPOSE 8000
+
+CMD ["node", "-r", "/app/index.js"]
