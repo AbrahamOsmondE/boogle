@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import Box from "@mui/material/Box";
+import React from "react";
 import CSS from "csstype";
 
 const DefaultBoard: React.FC<DefaultBoard> = ({ inputLetters }) => {

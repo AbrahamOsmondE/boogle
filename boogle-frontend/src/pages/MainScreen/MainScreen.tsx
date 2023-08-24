@@ -9,11 +9,8 @@ import {
 } from "@mui/material";
 import PracticeDialog from "../../components/PraticeDialog/PracticeDialog";
 import CSS from "csstype";
-import { useAppSelector, useAppDispatch } from "../../app/hooks";
-import {
-  selectGlobalName,
-  setGlobalName,
-} from "../../redux/features/globalSlice";
+import { useAppDispatch } from "../../app/hooks";
+import { setGlobalName } from "../../redux/features/globalSlice";
 import { useNavigate } from "react-router-dom";
 
 const MainScreen: React.FC = () => {
@@ -21,7 +18,6 @@ const MainScreen: React.FC = () => {
   const [name, setName] = useState("");
 
   const [error, setError] = useState(false);
-  const username = useAppSelector(selectGlobalName);
 
   const navigate = useNavigate();
 
@@ -31,9 +27,6 @@ const MainScreen: React.FC = () => {
     localStorage.setItem("name", name);
     dispatch(setGlobalName(name));
     return;
-  };
-  const handleClickOpen = () => {
-    setOpen(true);
   };
 
   const handleClose = () => {
