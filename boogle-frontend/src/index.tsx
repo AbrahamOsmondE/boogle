@@ -7,13 +7,16 @@ import { store } from "./app/store";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import MainScreen from "./pages/MainScreen/MainScreen";
 import PracticeScreen from "./pages/PracticeScreen/PracticeScreen";
-import AWS from "aws-sdk";
+import axios from 'axios';
 
-AWS.config.update({
-  accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.REACT_APP_AWS_SECRET_ACCESS_KEY,
-  region: process.env.REACT_APP_AWS_DEFAULT_REGION,
-});
+const baseUrl = process.env.REACT_APP_BASE_URL || 'http://localhost:8000'
+export const boogleAxios = axios.create({
+  baseURL: baseUrl,
+  headers: {
+    'Content-Type' : 'application/json',
+    "Access-Control-Allow-Origin": "*",
+  }
+})
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement,
