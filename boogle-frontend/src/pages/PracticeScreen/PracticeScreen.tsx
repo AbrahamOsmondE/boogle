@@ -35,7 +35,7 @@ const PracticeScreen: React.FC = () => {
       };
 
       const response = await boogleAxios.post('/solutions', payload);
-      console.log(response)
+
       const boardSolution = response.data
 
       setSolutions(boardSolution);

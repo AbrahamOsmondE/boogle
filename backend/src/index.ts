@@ -28,7 +28,7 @@ app.get('/', (req: Request, res: Response) => {
 
 app.post('/solutions', async (req: Request, res: Response) => {
   const payload = req.body;
-  console.log(req, req.body)
+
   const params = {
     FunctionName: "boogle-app",
     InvocationType: "RequestResponse",
@@ -39,7 +39,6 @@ app.post('/solutions', async (req: Request, res: Response) => {
   const response = JSON.parse(JSON.stringify(result.Payload!))
   const body = JSON.parse(response).body;
 
-  console.log(body)
   res.status(200).send(body)
 })
 
