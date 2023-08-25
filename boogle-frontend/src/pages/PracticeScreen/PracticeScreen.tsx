@@ -4,8 +4,7 @@ import PlayStage from "../../stages/PlayStage/PlayStage";
 import CleanUpStage from "../../stages/CleanUpStage/CleanUpStage";
 import { Players, Solutions, StageEnum, Words } from "../../stages/core";
 import ResultStage from "../../stages/ResultStage/ResultStage";
-import AWS from "aws-sdk";
-
+import { boogleAxios } from "../..";
 const PracticeScreen: React.FC = () => {
   const [stage, setStage] = useState(0);
   const [players, setPlayers]: [Players, Dispatch<SetStateAction<Players>>] =
@@ -27,7 +26,6 @@ const PracticeScreen: React.FC = () => {
 
   const invokeLambda = async () => {
     try {
-      const lambda = new AWS.Lambda({ region: "ap-southeast-1" });
       const modifiedLetters = letters
         .map((letter) => (letter === "Qu" ? "Q" : letter))
         .join("");
@@ -35,19 +33,14 @@ const PracticeScreen: React.FC = () => {
       const payload = {
         board: modifiedLetters,
       };
-      const params = {
-        FunctionName: "boogle-app",
-        InvocationType: "RequestResponse",
-        Payload: JSON.stringify(payload),
-      };
 
-      const result = await lambda.invoke(params).promise();
-      const response = JSON.parse(JSON.stringify(result.Payload!));
-      const body = JSON.parse(response).body;
+      const response = await boogleAxios.post('/solutions', payload);
 
-      setSolutions(body);
+      const boardSolution = response.data
 
-      const squashedSquashedList = Object.values(body).flat() as string[];
+      setSolutions(boardSolution);
+
+      const squashedSquashedList = Object.values(boardSolution).flat() as string[];
       const solutionPlayer: Words[] = squashedSquashedList.map((word) => ({
         word: word,
         checked: true,
