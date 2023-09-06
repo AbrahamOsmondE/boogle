@@ -6,9 +6,7 @@ import AWS from 'aws-sdk'
 dotenv.config();
 
 AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION,
+  region: process.env.AWS_REGION || 'ap-southeast-1',
 });
 
 const bodyParser = require('body-parser');
@@ -26,7 +24,7 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to Express & TypeScript Server');
 });
 
-app.post('/solutions', async (req: Request, res: Response) => {
+app.post('/api/solutions', async (req: Request, res: Response) => {
   const payload = req.body;
 
   const params = {
@@ -43,5 +41,5 @@ app.post('/solutions', async (req: Request, res: Response) => {
 })
 
 app.listen(port, () => {
-  console.log(`Server is Fire at http://localhost:${port}`);
+  console.log(`Server has been Fire at http://localhost:${port}`);
 });
