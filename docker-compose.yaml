@@ -12,7 +12,7 @@ services:
       context: ./boogle-frontend
       dockerfile: Dockerfile.react
     ports:
-      - "3000:3000"
+      - "80:80"
 
   boogle-backend:
     build:
