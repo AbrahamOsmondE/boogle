@@ -1,7 +1,8 @@
 # Boogle
 
-Boggle web app
+Mobile web app made to practice and play the board game boggle. Deployed with AWS ECS/Fargate with ALB and all that stuff.
 
+https://booooooogle.com
 # Frontend Stack
 
 - React
