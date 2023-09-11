@@ -47,7 +47,7 @@ services:
   #     - boogle-frontend
 
   # For developing websocket redis
-  # redis:
-  #   image: redis:7.0-alpine
-  #   ports:
-  #     - '6379:6379'
+  redis:
+    image: redis:7.0-alpine
+    ports:
+      - '6379:6379'
