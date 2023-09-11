@@ -7,16 +7,16 @@ import { store } from "./app/store";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import MainScreen from "./pages/MainScreen/MainScreen";
 import PracticeScreen from "./pages/PracticeScreen/PracticeScreen";
-import axios from 'axios';
+import axios from "axios";
 
-const baseUrl = process.env.REACT_APP_BASE_URL || 'http://localhost:8000'
+const baseUrl = process.env.REACT_APP_BASE_URL || "http://localhost:8000";
 export const boogleAxios = axios.create({
   baseURL: baseUrl,
   headers: {
-    'Content-Type' : 'application/json',
+    "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
-  }
-})
+  },
+});
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement,
