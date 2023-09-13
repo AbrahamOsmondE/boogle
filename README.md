@@ -1,4 +1,4 @@
-# Boogle
+# [Boogle](https://booooooogle.com/)
 
 Mobile web app made to practice and play the board game boggle. Deployed with AWS ECS/Fargate with ALB and all that stuff.
 
@@ -7,7 +7,6 @@ https://booooooogle.com
 
 - React
 - Redux
-- AWS SDK
 
 # Backend Stack
 
@@ -15,10 +14,11 @@ https://booooooogle.com
 - Websocket.io
 - redis
 - PGSql
+- AWS SDK
 
 # DevOps/CICD
 
-- AWS (Lambda, S3, Route 53, Cloudfront)
+- AWS (Lambda, ECS Fargate, ECR, ALB, VPC)
 - AWS CDK
 - Github Actions
 - Docker/Docker compose
