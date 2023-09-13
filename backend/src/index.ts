@@ -20,7 +20,11 @@ const lambda = new AWS.Lambda();
 const app: Application = express();
 
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000",
+  },
+});
 export const redisClient = createClient();
 
 redisClient.on("error", (err) => console.log("Redis Client Error", err));
@@ -56,7 +60,7 @@ const onConnection = (socket: any) => {
   registerGameHandlers(io, socket);
 };
 io.on("connection", onConnection);
-
+io.listen(8000);
 app.listen(port, () => {
   console.log(`Server has been Fire at http://localhost:${port}`);
 });
