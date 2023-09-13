@@ -7,21 +7,21 @@ services:
   #   ports:
   #     - 5432:5432
 
-  boogle-frontend:
-    build:
-      context: ./boogle-frontend
-      dockerfile: Dockerfile.react
-    ports:
-      - "80:80"
+  # boogle-frontend:
+  #   build:
+  #     context: ./boogle-frontend
+  #     dockerfile: Dockerfile.react
+  #   ports:
+  #     - "80:80"
 
-  boogle-backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile.express
-    ports:
-      - "8000:8000"
-    # depends_on:
-    #   - db
+  # boogle-backend:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile.express
+  #   ports:
+  #     - "8000:8000"
+  # depends_on:
+  #   - db
 
   # For mocking lambda function invocation results
   # localstack:
@@ -47,7 +47,7 @@ services:
   #     - boogle-frontend
 
   # For developing websocket redis
-  # redis:
-  #   image: redis:7.0-alpine
-  #   ports:
-  #     - '6379:6379'
+  redis:
+    image: redis:7.0-alpine
+    ports:
+      - "6379:6379"

@@ -7,14 +7,18 @@ import {
   OutlinedInput,
   FormControl,
 } from "@mui/material";
-import PracticeDialog from "../../components/PraticeDialog/PracticeDialog";
+import CreateRoomDialog from "../../components/CreateRoomDialog/CreateRoomDialog";
 import CSS from "csstype";
 import { useAppDispatch } from "../../app/hooks";
 import { setGlobalName } from "../../redux/features/globalSlice";
 import { useNavigate } from "react-router-dom";
+import JoinRoomDialog from "../../components/JoinRoomDialog/JoinRoomDialog";
+import LinkJoinRoomDialog from "../../components/LinkJoinRoomDialog/LinkJoinRoomDialog";
 
 const MainScreen: React.FC = () => {
-  const [open, setOpen] = useState(false);
+  const [createRoomOpen, setCreateRoomOpen] = useState(false);
+  const [joinRoomOpen, setJoinRoomOpen] = useState(false);
+  const [linkJoinRoomOpen, setLinkJoinRoomOpen] = useState(false);
   const [name, setName] = useState("");
 
   const [error, setError] = useState(false);
@@ -29,13 +33,30 @@ const MainScreen: React.FC = () => {
     return;
   };
 
-  const handleClose = () => {
-    setOpen(false);
+  const handleCreateRoomClose = () => {
+    setCreateRoomOpen(false);
+  };
+
+  const handleJoinRoomClose = () => {
+    setJoinRoomOpen(false);
+  };
+
+  const handleLinkJoinRoomClose = () => {
+    setLinkJoinRoomOpen(false);
   };
 
   useEffect(() => {
     const name = localStorage.getItem("name");
     if (name) setName(name);
+
+    const url = new URL(window.location.href);
+
+    const queryParams = new URLSearchParams(url.search);
+    const roomCode = queryParams.get("join");
+
+    if (roomCode) {
+      setLinkJoinRoomOpen(true);
+    }
   }, []);
 
   return (
@@ -76,23 +97,49 @@ const MainScreen: React.FC = () => {
           >
             Practice
           </Button>
-          <Button style={{ backgroundColor: "grey" }} variant="contained">
+          <Button
+            style={{ backgroundColor: "grey" }}
+            variant="contained"
+            onClick={() => {
+              setCreateRoomOpen(true);
+            }}
+          >
             Versus
           </Button>
         </Stack>
         <Typography variant="h6" gutterBottom style={{ color: "white" }}>
           Join a Room
         </Typography>
-        <Button style={{ backgroundColor: "grey" }} variant="contained">
+        <Button
+          style={{ backgroundColor: "grey" }}
+          variant="contained"
+          onClick={() => {
+            setJoinRoomOpen(true);
+          }}
+        >
           Join
         </Button>
       </Stack>
       <Dialog
-        open={open}
-        onClose={handleClose}
+        open={createRoomOpen}
+        onClose={handleCreateRoomClose}
         aria-labelledby="responsive-dialog-title"
       >
-        <PracticeDialog setOpen={setOpen} />
+        <CreateRoomDialog setOpen={setCreateRoomOpen} />
+      </Dialog>
+      <Dialog
+        open={joinRoomOpen}
+        onClose={handleJoinRoomClose}
+        aria-labelledby="responsive-dialog-title"
+      >
+        <JoinRoomDialog setOpen={setJoinRoomOpen} />
+      </Dialog>
+      <Dialog
+        open={linkJoinRoomOpen}
+        onClose={handleLinkJoinRoomClose}
+        aria-labelledby="responsive-dialog-title"
+      >
+        <LinkJoinRoomDialog setOpen={setLinkJoinRoomOpen} />
       </Dialog>
     </div>
   );
@@ -101,7 +148,7 @@ const MainScreen: React.FC = () => {
 export default MainScreen;
 
 const containerStyle: CSS.Properties = {
-  maxHeight: "100vh", // Set the height of the parent container to full viewport height
+  maxHeight: "100vh",
   width: "100%",
   position: "relative",
   backgroundColor: "#282c34",

@@ -34,13 +34,15 @@ const PracticeScreen: React.FC = () => {
         board: modifiedLetters,
       };
 
-      const response = await boogleAxios.post('/solutions', payload);
+      const response = await boogleAxios.post("/solutions", payload);
 
-      const boardSolution = response.data
+      const boardSolution = response.data;
 
       setSolutions(boardSolution);
 
-      const squashedSquashedList = Object.values(boardSolution).flat() as string[];
+      const squashedSquashedList = Object.values(
+        boardSolution,
+      ).flat() as string[];
       const solutionPlayer: Words[] = squashedSquashedList.map((word) => ({
         word: word,
         checked: true,
