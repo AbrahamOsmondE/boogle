@@ -19,19 +19,8 @@ const MainScreen: React.FC = () => {
   const [createRoomOpen, setCreateRoomOpen] = useState(false);
   const [joinRoomOpen, setJoinRoomOpen] = useState(false);
   const [linkJoinRoomOpen, setLinkJoinRoomOpen] = useState(false);
-  const [name, setName] = useState("");
-
-  const [error, setError] = useState(false);
 
   const navigate = useNavigate();
-
-  const dispatch = useAppDispatch();
-
-  const handleSubmit = () => {
-    localStorage.setItem("name", name);
-    dispatch(setGlobalName(name));
-    return;
-  };
 
   const handleCreateRoomClose = () => {
     setCreateRoomOpen(false);
@@ -46,9 +35,6 @@ const MainScreen: React.FC = () => {
   };
 
   useEffect(() => {
-    const name = localStorage.getItem("name");
-    if (name) setName(name);
-
     const url = new URL(window.location.href);
 
     const queryParams = new URLSearchParams(url.search);
@@ -64,20 +50,6 @@ const MainScreen: React.FC = () => {
       <Typography variant="h2" gutterBottom style={{ color: "grey" }}>
         b o o g l e.
       </Typography>
-      <FormControl>
-        <OutlinedInput
-          name="boogle-username"
-          error={error}
-          id="outlined-basic"
-          placeholder={error ? "Enter name!" : "Enter your name"}
-          value={name}
-          onChange={(e) => {
-            setName(e.target.value);
-            setError(false);
-          }}
-          style={{ backgroundColor: "white", marginBottom: "2vh" }}
-        />
-      </FormControl>
       <Stack spacing={3}>
         <Typography variant="h6" gutterBottom style={{ color: "white" }}>
           Create a Room
@@ -87,11 +59,7 @@ const MainScreen: React.FC = () => {
             style={{ backgroundColor: "grey" }}
             variant="contained"
             onClick={() => {
-              if (!name) {
-                setError(true);
-                return;
-              }
-              handleSubmit();
+
               navigate("/practice");
             }}
           >

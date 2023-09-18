@@ -1,12 +1,14 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 
-import PlayStage from "../../stages/PlayStage/PlayStage";
-import CleanUpStage from "../../stages/CleanUpStage/CleanUpStage";
+import VersusPlayStage from "../../stages/VersusPlayStage/VersusPlayStage";
+import VersusCleanUpStage from "../../stages/VersusCleanUpStage/VersusCleanUpStage";
 import { Players, Solutions, StageEnum, Words } from "../../stages/core";
-import ResultStage from "../../stages/ResultStage/ResultStage";
+import VersusResultStage from "../../stages/VersusResultStage/VersusResultStage";
 import { boogleAxios } from "../..";
-import { YOUR_NAME } from "../../constants";
-const PracticeScreen: React.FC = () => {
+import { OPPONENTS_NAME, YOUR_NAME } from "../../constants";
+import VersusChallengeStage from "../../stages/VersusChallengeStage/VersusChallengeStage";
+import LoadingOverlay from "../../components/LoadingOverlay/LoadingOverlay";
+const VersusScreen: React.FC = () => {
   const [stage, setStage] = useState(0);
   const [players, setPlayers]: [Players, Dispatch<SetStateAction<Players>>] =
     useState({});
@@ -14,13 +16,22 @@ const PracticeScreen: React.FC = () => {
   const [solutions, setSolutions] = useState<Solutions>({});
 
   useEffect(() => {
-    if (stage === 0) {
-      setLetters(generateRandomBoggleBoard());
+    if (stage === StageEnum.PLAY) {
+      setLetters(generateRandomBoggleBoard()); //get from BE
       setPlayers({
         [YOUR_NAME]: [],
+        [OPPONENTS_NAME]: [],
         solutions: [],
       });
       setSolutions({});
+    } else if (stage === StageEnum.CLEANUP) {
+
+    } else if (stage === StageEnum.CHALLENGE) {
+
+    } else if (stage === StageEnum.RESULT) {
+
+    } else {
+      //check local storage for stage, if not, initialize the stage to be 0 (store stage, userId, roomCode in 1 json)
     }
   }, [stage]);
 
@@ -66,7 +77,7 @@ const PracticeScreen: React.FC = () => {
     switch (stage) {
       case StageEnum.PLAY:
         return (
-          <PlayStage
+          <VersusPlayStage
             setStage={setStage}
             players={players}
             setPlayers={setPlayers}
@@ -75,27 +86,37 @@ const PracticeScreen: React.FC = () => {
         );
       case StageEnum.CLEANUP:
         return (
-          <CleanUpStage
+          <VersusCleanUpStage
             setStage={setStage}
             players={players}
             setPlayers={setPlayers}
           />
         );
+      case StageEnum.CHALLENGE:
+        return (
+          <VersusChallengeStage 
+            setStage={setStage}
+            players={players}
+            setPlayers={setPlayers}
+          />
+        )
       case StageEnum.RESULT:
         return (
-          <ResultStage
+          <VersusResultStage
             solutions={solutions}
             setStage={setStage}
             players={players}
             letters={letters}
           />
         );
+      default:
+        return <LoadingOverlay />
     }
   };
   return <div>{renderStage(stage)}</div>;
 };
 
-export default PracticeScreen;
+export default VersusScreen;
 
 const generateRandomBoggleBoard = () => {
   const boggleDice = [

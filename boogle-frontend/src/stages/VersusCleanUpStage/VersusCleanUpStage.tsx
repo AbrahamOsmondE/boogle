@@ -8,7 +8,7 @@ import { Players, Words } from "../core";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
 import { YOUR_NAME } from "../../constants";
 
-const CleanUpStage: React.FC<CleanUpStageProps> = ({
+const VersusCleanUpStage: React.FC<VersusCleanUpStageProps> = ({
   setStage,
   players,
   setPlayers,
@@ -23,9 +23,9 @@ const CleanUpStage: React.FC<CleanUpStageProps> = ({
       let score = 0;
 
       if (wordLength >= 8) {
-        score = 11;
-      } else if (wordLength >= 7) {
         score = 5;
+      } else if (wordLength >= 7) {
+        score = 4;
       } else if (wordLength >= 6) {
         score = 3;
       } else if (wordLength >= 5) {
@@ -57,7 +57,7 @@ const CleanUpStage: React.FC<CleanUpStageProps> = ({
   useEffect(() => {
     if (time === 0) {
       filterWords();
-      setStage(2);
+      setStage(3);
     }
   }, [time]);
 
@@ -96,9 +96,9 @@ const CleanUpStage: React.FC<CleanUpStageProps> = ({
   );
 };
 
-export default CleanUpStage;
+export default VersusCleanUpStage;
 
-interface CleanUpStageProps {
+interface VersusCleanUpStageProps {
   setStage: (value: number) => void;
   players: Players;
   setPlayers: (value: Players) => void;

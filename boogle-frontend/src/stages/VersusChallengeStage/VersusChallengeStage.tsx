@@ -6,9 +6,9 @@ import { Button, Stack, Typography } from "@mui/material";
 import WordListTabCleanUp from "../../components/WordListTab/WordListTabCleanup";
 import { Players, Words } from "../core";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
-import { YOUR_NAME } from "../../constants";
+import { OPPONENTS_NAME, YOUR_NAME } from "../../constants";
 
-const CleanUpStage: React.FC<CleanUpStageProps> = ({
+const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
   setStage,
   players,
   setPlayers,
@@ -40,7 +40,7 @@ const CleanUpStage: React.FC<CleanUpStageProps> = ({
   const filterWords = () => {
     setPlayers({
       ...players,
-      [YOUR_NAME]: players[YOUR_NAME].filter((val) => val.checked),
+      [OPPONENTS_NAME]: players[OPPONENTS_NAME].filter((val) => val.checked),
     });
   };
   useEffect(() => {
@@ -64,7 +64,7 @@ const CleanUpStage: React.FC<CleanUpStageProps> = ({
   return (
     <div style={containerStyle}>
       {count !== 0 ? (
-        <ScreenCountDown title={"Clean up!"} count={count} />
+        <ScreenCountDown title={"Challenge!"} count={count} />
       ) : (
         <>
           <TextCountdown count={time} setCount={setTime} />
@@ -74,7 +74,7 @@ const CleanUpStage: React.FC<CleanUpStageProps> = ({
             sx={{ width: "70%", marginTop: "1vh", marginBottom: "2vh" }}
           >
             <Typography variant="h6" align="center">
-              Score: {countScore(players[YOUR_NAME])}
+              Score: {countScore(players[OPPONENTS_NAME])}
             </Typography>
 
             <Button
@@ -96,9 +96,9 @@ const CleanUpStage: React.FC<CleanUpStageProps> = ({
   );
 };
 
-export default CleanUpStage;
+export default VersusChallengeStage;
 
-interface CleanUpStageProps {
+interface VersusChallengeStageProps {
   setStage: (value: number) => void;
   players: Players;
   setPlayers: (value: Players) => void;

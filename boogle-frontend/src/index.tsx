@@ -8,6 +8,7 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import MainScreen from "./pages/MainScreen/MainScreen";
 import PracticeScreen from "./pages/PracticeScreen/PracticeScreen";
 import axios from "axios";
+import VersusScreen from "./pages/VersusScreen/VersusScreen";
 
 const baseUrl = process.env.REACT_APP_BASE_URL || "http://localhost:8000";
 export const boogleAxios = axios.create({
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
     path: "/practice",
     element: <PracticeScreen />,
   },
+  {
+    path: "/versus",
+    element: <VersusScreen />
+  }
 ]);
 
 root.render(

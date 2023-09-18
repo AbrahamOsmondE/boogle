@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import CSS from "csstype";
 import { Players } from "../../stages/core";
+import { YOUR_NAME } from "../../constants";
 const BoggleBoard: React.FC<BoggleBoardProps> = ({
   letters,
   setWord,
@@ -9,7 +10,6 @@ const BoggleBoard: React.FC<BoggleBoardProps> = ({
 }) => {
   const [selectedBoxes, setSelectedBoxes] = useState<number[]>([]);
   const [lastIndex, setLastIndex] = useState(0);
-  const name = localStorage.getItem("name")!;
 
   const handlePointerDown = (e: React.PointerEvent, index: number) => {
     e.currentTarget.releasePointerCapture(e.pointerId);
@@ -39,8 +39,8 @@ const BoggleBoard: React.FC<BoggleBoardProps> = ({
     if (word.length > 2) {
       setPlayers({
         ...players,
-        [name]: [
-          ...players[name],
+        [YOUR_NAME]: [
+          ...players[YOUR_NAME],
           {
             word: word,
             checked: true,

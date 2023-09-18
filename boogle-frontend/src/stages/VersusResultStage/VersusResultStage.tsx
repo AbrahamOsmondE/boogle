@@ -9,7 +9,7 @@ import DefaultBoard from "../../components/BoggleBoard/DefaultBoard";
 import { useNavigate } from "react-router-dom";
 import { YOUR_NAME } from "../../constants";
 
-const ResultStage: React.FC<ResultStageProps> = ({
+const VersusResultStage: React.FC<VersusResultStageProps> = ({
   setStage,
   players,
   letters,
@@ -27,20 +27,20 @@ const ResultStage: React.FC<ResultStageProps> = ({
     return player.reduce((res, cur) => {
       if (!cur.checked) return res;
       const wordLength = cur.word.length;
-      let score = 0;
+      let score = [0,0];
 
       if (wordLength >= 8) {
-        score = 11;
+        score = [5,-4];
       } else if (wordLength >= 7) {
-        score = 5;
+        score = [4,-3];
       } else if (wordLength >= 6) {
-        score = 3;
+        score = [3,-2];
       } else if (wordLength >= 5) {
-        score = 2;
+        score = [2,-1];
       } else if (wordLength >= 3) {
-        score = 1;
+        score = [1,-1];
       }
-      return isInSolution(cur.word) ? res + score : res - score;
+      return isInSolution(cur.word) ? res + score[0] : res + score[-1];
     }, 0);
   };
 
@@ -114,9 +114,9 @@ const ResultStage: React.FC<ResultStageProps> = ({
   );
 };
 
-export default ResultStage;
+export default VersusResultStage;
 
-interface ResultStageProps {
+interface VersusResultStageProps {
   solutions: Solutions;
   setStage: (value: number) => void;
   players: Players;
