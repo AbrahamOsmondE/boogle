@@ -8,16 +8,19 @@ import { boogleAxios } from "../..";
 import { OPPONENTS_NAME, YOUR_NAME } from "../../constants";
 import VersusChallengeStage from "../../stages/VersusChallengeStage/VersusChallengeStage";
 import LoadingOverlay from "../../components/LoadingOverlay/LoadingOverlay";
+import { useAppSelector } from "../../app/hooks";
+import { selectGlobalBoard } from "../../redux/features/globalSlice";
 const VersusScreen: React.FC = () => {
   const [stage, setStage] = useState(0);
   const [players, setPlayers]: [Players, Dispatch<SetStateAction<Players>>] =
     useState({});
-  const [letters, setLetters] = useState(generateRandomBoggleBoard());
+  const [letters, setLetters] = useState(defaultBoard);
   const [solutions, setSolutions] = useState<Solutions>({});
+  const board = useAppSelector(selectGlobalBoard)
 
   useEffect(() => {
     if (stage === StageEnum.PLAY) {
-      setLetters(generateRandomBoggleBoard()); //get from BE
+      setLetters(board);
       setPlayers({
         [YOUR_NAME]: [],
         [OPPONENTS_NAME]: [],
@@ -118,34 +121,4 @@ const VersusScreen: React.FC = () => {
 
 export default VersusScreen;
 
-const generateRandomBoggleBoard = () => {
-  const boggleDice = [
-    ["A", "A", "E", "E", "G", "N"],
-    ["E", "L", "R", "T", "T", "Y"],
-    ["A", "O", "O", "T", "T", "W"],
-    ["A", "B", "B", "J", "O", "O"],
-    ["E", "H", "R", "T", "V", "W"],
-    ["C", "I", "M", "O", "T", "U"],
-    ["D", "I", "S", "T", "T", "Y"],
-    ["E", "I", "O", "S", "S", "T"],
-    ["D", "E", "L", "R", "V", "Y"],
-    ["A", "C", "H", "O", "P", "S"],
-    ["H", "I", "M", "N", "Qu", "U"],
-    ["E", "E", "I", "N", "S", "U"],
-    ["E", "E", "G", "H", "N", "W"],
-    ["A", "F", "F", "K", "P", "S"],
-    ["H", "L", "N", "N", "R", "Z"],
-    ["D", "E", "I", "L", "R", "X"],
-  ];
-
-  const boggleBoard = [];
-
-  for (let i = 0; i < 16; i++) {
-    const dieIndex = Math.floor(Math.random() * boggleDice.length);
-    const dieFaces = boggleDice[dieIndex];
-    const faceIndex = Math.floor(Math.random() * dieFaces.length);
-    boggleBoard.push(dieFaces[faceIndex]);
-  }
-
-  return boggleBoard;
-};
+const defaultBoard = ["","","","","","","","","","","","","","","",""]

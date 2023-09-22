@@ -4,6 +4,7 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import { TextField } from "@mui/material";
+import { socket } from "../..";
 
 const JoinRoomDialog: React.FC<JoinRoomDialogProps> = ({ setOpen }) => {
   const [roomCode, setRoomCode] = useState("");
@@ -12,7 +13,10 @@ const JoinRoomDialog: React.FC<JoinRoomDialogProps> = ({ setOpen }) => {
   };
 
   const joinRoom = () => {
-    //do websocket shit to initialize the game, and send the user to the versus round
+    if (roomCode) {
+      socket.emit("game:join_room", {roomCode: roomCode})
+      return
+    }
   };
 
   const handleInputChange = (event: any) => {

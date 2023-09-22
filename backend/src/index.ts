@@ -60,7 +60,7 @@ const onConnection = (socket: any) => {
   registerGameHandlers(io, socket);
 };
 io.on("connection", onConnection);
-io.listen(8000);
+io.listen(8001);
 app.listen(port, () => {
   console.log(`Server has been Fire at http://localhost:${port}`);
 });

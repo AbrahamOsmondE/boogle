@@ -4,21 +4,18 @@ import {
   Stack,
   Dialog,
   Typography,
-  OutlinedInput,
-  FormControl,
 } from "@mui/material";
 import CreateRoomDialog from "../../components/CreateRoomDialog/CreateRoomDialog";
 import CSS from "csstype";
-import { useAppDispatch } from "../../app/hooks";
-import { setGlobalName } from "../../redux/features/globalSlice";
 import { useNavigate } from "react-router-dom";
 import JoinRoomDialog from "../../components/JoinRoomDialog/JoinRoomDialog";
-import LinkJoinRoomDialog from "../../components/LinkJoinRoomDialog/LinkJoinRoomDialog";
+import { socket } from "../..";
+import { useAppDispatch } from "../../app/hooks";
+import { setGlobalBoard } from "../../redux/features/globalSlice";
 
 const MainScreen: React.FC = () => {
   const [createRoomOpen, setCreateRoomOpen] = useState(false);
   const [joinRoomOpen, setJoinRoomOpen] = useState(false);
-  const [linkJoinRoomOpen, setLinkJoinRoomOpen] = useState(false);
 
   const navigate = useNavigate();
 
@@ -30,18 +27,42 @@ const MainScreen: React.FC = () => {
     setJoinRoomOpen(false);
   };
 
-  const handleLinkJoinRoomClose = () => {
-    setLinkJoinRoomOpen(false);
-  };
+  const dispatch = useAppDispatch()
 
   useEffect(() => {
     const url = new URL(window.location.href);
 
     const queryParams = new URLSearchParams(url.search);
-    const roomCode = queryParams.get("join");
+    const roomCodeParam = queryParams.get("join");
 
-    if (roomCode) {
-      setLinkJoinRoomOpen(true);
+    //do exact same on join room dialog
+    socket.on("joinedRoom", (data) => {
+      console.log(data)
+      if (!data.isPlayer) alert('Room is full!')
+
+      localStorage.setItem('roomCode', data.roomCode)
+      localStorage.setItem('userId', data.userId)
+      dispatch(setGlobalBoard(data.board))
+
+      navigate('/versus')
+    })
+
+    socket.on("roomNotFound", (data) => {
+      alert('Room not found!')
+    })
+
+    socket.on("roomJoiningError", (data) => {
+      alert(`Error joining room: ${data.error}`)
+    })
+
+    if (roomCodeParam) {
+      socket.emit("game:join_room", {roomCode: roomCodeParam})
+    }
+
+    return () => {
+      socket.off("joinedRoom")
+      socket.off("roomNotFound")
+      socket.off("roomJoiningError")
     }
   }, []);
 
@@ -101,13 +122,6 @@ const MainScreen: React.FC = () => {
         aria-labelledby="responsive-dialog-title"
       >
         <JoinRoomDialog setOpen={setJoinRoomOpen} />
-      </Dialog>
-      <Dialog
-        open={linkJoinRoomOpen}
-        onClose={handleLinkJoinRoomClose}
-        aria-labelledby="responsive-dialog-title"
-      >
-        <LinkJoinRoomDialog setOpen={setLinkJoinRoomOpen} />
       </Dialog>
     </div>
   );

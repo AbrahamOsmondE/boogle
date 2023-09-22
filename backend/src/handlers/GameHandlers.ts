@@ -1,12 +1,11 @@
 import { redisClient } from "..";
 
 export const registerGameHandlers = (io: any, socket: any) => {
-  const createGame = (data: any) => {
-    const { playerName } = data;
+  const createGame = () => {
     const roomCode = generateRoomCode();
 
     const room: Room = {
-      players: [{ id: socket.id, name: playerName }],
+      players: [{ id: socket.id}],
       spectators: [],
       board: generateBoard(),
       currentRound: RoundEnum.WAIT,
@@ -25,7 +24,7 @@ export const registerGameHandlers = (io: any, socket: any) => {
   };
 
   const joinGame = async (data: any) => {
-    const { roomCode, playerName } = data;
+    const { roomCode } = data;
 
     try {
       const roomData = await redisClient.HGET("rooms", roomCode);
@@ -57,8 +56,8 @@ export const registerGameHandlers = (io: any, socket: any) => {
         socket.join(`${roomCode}_spectate`);
         return;
       }
-      const opponentId = room.players[0];
-      room.players.push({ id: socket.id, name: playerName });
+      const opponentId = room.players[0].id;
+      room.players.push({ id: socket.id});
 
       room.currentRound = 1;
 
@@ -70,16 +69,19 @@ export const registerGameHandlers = (io: any, socket: any) => {
         roomCode,
         userId: socket.id,
         isPlayer: true,
+        board: room.board
       });
-      socket.to(opponentId).emit("initializeNextRound");
+
+      socket.to(opponentId).emit("initializeNextRound", {board: room.board});
     } catch (error) {
       console.error(error);
-      socket.emit("roomJoiningError");
+      socket.emit("roomJoiningError", {error});
     }
   };
 
   const appendWord = (data: any) => {
     const { userId, word, roomCode } = data;
+    console.log('word appended:', word)
 
     redisClient.LPUSH(userId, word);
 
@@ -100,7 +102,7 @@ export const registerGameHandlers = (io: any, socket: any) => {
 
   const nextRound = async (data: any) => {
     const { userId, roomCode, words } = data;
-
+    console.log(userId, words)
     const roomJson = await redisClient.HGET("rooms", roomCode);
     const room = JSON.parse(roomJson!) as Room;
 
@@ -210,7 +212,7 @@ export const registerGameHandlers = (io: any, socket: any) => {
   socket.on("game:solution", getSolutions);
   socket.on("game:next_round", nextRound);
   socket.on("game:rejoin_room", rejoinGame);
-  socket.on("gane:end_room", closeGame);
+  socket.on("game:end_room", closeGame);
 };
 
 const generateRoomCode = () => {
@@ -218,7 +220,35 @@ const generateRoomCode = () => {
 };
 
 const generateBoard = () => {
-  return [""];
+  const boggleDice = [
+    ["A", "A", "E", "E", "G", "N"],
+    ["E", "L", "R", "T", "T", "Y"],
+    ["A", "O", "O", "T", "T", "W"],
+    ["A", "B", "B", "J", "O", "O"],
+    ["E", "H", "R", "T", "V", "W"],
+    ["C", "I", "M", "O", "T", "U"],
+    ["D", "I", "S", "T", "T", "Y"],
+    ["E", "I", "O", "S", "S", "T"],
+    ["D", "E", "L", "R", "V", "Y"],
+    ["A", "C", "H", "O", "P", "S"],
+    ["H", "I", "M", "N", "Qu", "U"],
+    ["E", "E", "I", "N", "S", "U"],
+    ["E", "E", "G", "H", "N", "W"],
+    ["A", "F", "F", "K", "P", "S"],
+    ["H", "L", "N", "N", "R", "Z"],
+    ["D", "E", "I", "L", "R", "X"],
+  ];
+
+  const boggleBoard = [];
+
+  for (let i = 0; i < 16; i++) {
+    const dieIndex = Math.floor(Math.random() * boggleDice.length);
+    const dieFaces = boggleDice[dieIndex];
+    const faceIndex = Math.floor(Math.random() * dieFaces.length);
+    boggleBoard.push(dieFaces[faceIndex]);
+  }
+
+  return boggleBoard;
 };
 
 const generateWordChecklist = async (playerId: string) => {
@@ -258,7 +288,6 @@ interface Room {
 
 interface Player {
   id: string;
-  name: string;
 }
 
 interface Word {

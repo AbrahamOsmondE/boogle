@@ -1,0 +1,27 @@
+version: "3"
+services:
+  # db: UNCOMMENT WHEN DEVELOPING DB
+  #   image: postgres:alpine
+  #   environment:
+  #     - POSTGRES_PASSWORD=postgres
+  #   ports:
+  #     - 5432:5432
+
+  # For mocking lambda function invocation results
+  # localstack:
+  #   image: localstack/localstack:latest
+  #   environment:
+  #   - SERVICES=lambda
+  #   - AWS_DEFAULT_REGION=ap-southeast-1
+  #   - EDGE_PORT=4566
+  #   ports:
+  #     - '4566-4597:4566-4597'
+  #   volumes:
+  #     - "${TMPDIR:-/tmp}/localstack:/tmp/localstack"
+  #     - /var/run/docker.sock:/var/run/docker.sock
+
+  # For developing websocket redis
+  redis:
+    image: redis:7.0-alpine
+    ports:
+      - "6379:6379"

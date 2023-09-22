@@ -7,6 +7,7 @@ const BoggleBoard: React.FC<BoggleBoardProps> = ({
   setWord,
   players,
   setPlayers,
+  sendWord
 }) => {
   const [selectedBoxes, setSelectedBoxes] = useState<number[]>([]);
   const [lastIndex, setLastIndex] = useState(0);
@@ -37,6 +38,7 @@ const BoggleBoard: React.FC<BoggleBoardProps> = ({
         .toUpperCase() || " ";
 
     if (word.length > 2) {
+      if (sendWord) sendWord(word)
       setPlayers({
         ...players,
         [YOUR_NAME]: [
@@ -107,6 +109,7 @@ interface BoggleBoardProps {
   setWord: (value: string) => void;
   players: Players;
   setPlayers: (value: Players) => void;
+  sendWord?: (word: string) => void;
 }
 
 const gridContainerStyle: CSS.Properties = {

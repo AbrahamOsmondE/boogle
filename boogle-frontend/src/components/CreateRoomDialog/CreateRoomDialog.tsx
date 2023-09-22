@@ -4,12 +4,16 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
+import { socket } from "../..";
+import { setGlobalBoard } from "../../redux/features/globalSlice";
+import { useAppDispatch } from "../../app/hooks";
+import { useNavigate } from "react-router-dom";
 
 const CreateRoomDialog: React.FC<CreateRoomDialogProps> = ({ setOpen }) => {
-  const [roomCode, setRoomCode] = useState("ABCDEF");
+  const [roomCode, setRoomCode] = useState("");
   const [copied, setCopied] = useState(false);
   const handleClose = () => {
-    //websocket close room
+    socket.emit('game:cancel_room', {roomCode})
     setOpen(false);
   };
 
@@ -21,9 +25,30 @@ const CreateRoomDialog: React.FC<CreateRoomDialogProps> = ({ setOpen }) => {
     setCopied(true);
   };
 
+  const navigate = useNavigate()
+  const dispatch = useAppDispatch()
   useEffect(() => {
-    //get room link
-    //store userId and roomCode locally
+    console.log('triggered')
+    socket.emit("game:create_room")
+
+    socket.on("roomCreated", (data) => {
+      setRoomCode(data.roomCode)
+      localStorage.setItem('roomCode', data.roomCode)
+      localStorage.setItem('userId', data.userId)
+    })
+
+    socket.on("initializeNextRound", (data) => {
+      console.log("triggered next round")
+      const board = data.board
+      dispatch(setGlobalBoard(board))
+
+      navigate('/versus')
+    })
+
+    return () => {
+      socket.off("roomCreated")
+      socket.off("initializeNextRound")
+    }
   }, []);
 
   return (

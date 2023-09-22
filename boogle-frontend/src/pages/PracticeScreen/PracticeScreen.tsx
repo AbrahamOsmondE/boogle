@@ -117,7 +117,7 @@ const generateRandomBoggleBoard = () => {
     ["D", "E", "I", "L", "R", "X"],
   ];
 
-  const boggleBoard = [];
+  const boggleBoard:string[] = [];
 
   for (let i = 0; i < 16; i++) {
     const dieIndex = Math.floor(Math.random() * boggleDice.length);

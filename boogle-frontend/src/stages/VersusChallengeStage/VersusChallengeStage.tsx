@@ -6,7 +6,7 @@ import { Button, Stack, Typography } from "@mui/material";
 import WordListTabCleanUp from "../../components/WordListTab/WordListTabCleanup";
 import { Players, Words } from "../core";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
-import { OPPONENTS_NAME, YOUR_NAME } from "../../constants";
+import { OPPONENTS_NAME } from "../../constants";
 
 const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
   setStage,

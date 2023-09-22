@@ -9,14 +9,23 @@ import MainScreen from "./pages/MainScreen/MainScreen";
 import PracticeScreen from "./pages/PracticeScreen/PracticeScreen";
 import axios from "axios";
 import VersusScreen from "./pages/VersusScreen/VersusScreen";
+import io from 'socket.io-client';
 
 const baseUrl = process.env.REACT_APP_BASE_URL || "http://localhost:8000";
+const webSocketUrl = process.env.REACT_APP_WEBSOCKET_URL || "http://localhost:8001"
 export const boogleAxios = axios.create({
   baseURL: baseUrl,
   headers: {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
   },
+});
+
+export const socket = io(webSocketUrl);
+
+socket.on('connect', () => {
+  console.log('Connected to the Socket.IO server');
+  console.log(socket.id)
 });
 
 const root = ReactDOM.createRoot(
