@@ -4,9 +4,10 @@ import CSS from "csstype";
 import TextCountdown from "../../components/TextCountdown/TextCountdown";
 import { Button, Stack, Typography } from "@mui/material";
 import WordListTabCleanUp from "../../components/WordListTab/WordListTabCleanup";
-import { Players, Words } from "../core";
+import { Players, StageEnum, Words } from "../core";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
 import { YOUR_NAME } from "../../constants";
+import { socket } from "../..";
 
 const VersusCleanUpStage: React.FC<VersusCleanUpStageProps> = ({
   setStage,
@@ -15,7 +16,8 @@ const VersusCleanUpStage: React.FC<VersusCleanUpStageProps> = ({
 }) => {
   const [count, setCount] = useState(3);
   const [time, setTime] = useState(180);
-
+  const userId = localStorage.get("userId");
+  const roomCode = localStorage.get("roomCode");
   const countScore = (player: Words[]) => {
     return player.reduce((res, cur) => {
       if (!cur.checked) return res;
@@ -37,12 +39,11 @@ const VersusCleanUpStage: React.FC<VersusCleanUpStageProps> = ({
     }, 0);
   };
 
-  const filterWords = () => {
-    setPlayers({
-      ...players,
-      [YOUR_NAME]: players[YOUR_NAME].filter((val) => val.checked),
-    });
+  const updateChecked = (word: string, status: boolean) => {
+    const key = `${userId}`;
+    socket.emit("game:update_word_status", { word, status, key });
   };
+
   useEffect(() => {
     window.scrollTo(0, document.body.scrollHeight);
     const timer = setInterval(() => {
@@ -56,8 +57,11 @@ const VersusCleanUpStage: React.FC<VersusCleanUpStageProps> = ({
 
   useEffect(() => {
     if (time === 0) {
-      filterWords();
-      setStage(3);
+      const words = players[YOUR_NAME].filter((val) => val.checked).map(
+        (wordObj) => wordObj.word,
+      );
+      socket.emit("game:next_round", { userId, roomCode, words });
+      setStage(StageEnum.CHALLENGE);
     }
   }, [time]);
 
@@ -89,7 +93,11 @@ const VersusCleanUpStage: React.FC<VersusCleanUpStageProps> = ({
               Done
             </Button>
           </Stack>
-          <WordListTabCleanUp players={players} setPlayers={setPlayers} />
+          <WordListTabCleanUp
+            players={players}
+            setPlayers={setPlayers}
+            updateChecked={updateChecked}
+          />
         </>
       )}
     </div>

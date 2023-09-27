@@ -4,19 +4,23 @@ import VersusPlayStage from "../../stages/VersusPlayStage/VersusPlayStage";
 import VersusCleanUpStage from "../../stages/VersusCleanUpStage/VersusCleanUpStage";
 import { Players, Solutions, StageEnum, Words } from "../../stages/core";
 import VersusResultStage from "../../stages/VersusResultStage/VersusResultStage";
-import { boogleAxios } from "../..";
+import { boogleAxios, socket } from "../..";
 import { OPPONENTS_NAME, YOUR_NAME } from "../../constants";
 import VersusChallengeStage from "../../stages/VersusChallengeStage/VersusChallengeStage";
 import LoadingOverlay from "../../components/LoadingOverlay/LoadingOverlay";
 import { useAppSelector } from "../../app/hooks";
 import { selectGlobalBoard } from "../../redux/features/globalSlice";
 const VersusScreen: React.FC = () => {
-  const [stage, setStage] = useState(0);
+  const [stage, setStage] = useState(10);
   const [players, setPlayers]: [Players, Dispatch<SetStateAction<Players>>] =
     useState({});
   const [letters, setLetters] = useState(defaultBoard);
   const [solutions, setSolutions] = useState<Solutions>({});
-  const board = useAppSelector(selectGlobalBoard)
+  const board = useAppSelector(selectGlobalBoard);
+  const storedStage = localStorage.getItem("stage");
+  const numStage = parseInt(storedStage ?? "0");
+  const roomCode = localStorage.getItem("roomCode");
+  const userId = localStorage.getItem("userId");
 
   useEffect(() => {
     if (stage === StageEnum.PLAY) {
@@ -28,13 +32,14 @@ const VersusScreen: React.FC = () => {
       });
       setSolutions({});
     } else if (stage === StageEnum.CLEANUP) {
-
     } else if (stage === StageEnum.CHALLENGE) {
-
     } else if (stage === StageEnum.RESULT) {
-
     } else {
-      //check local storage for stage, if not, initialize the stage to be 0 (store stage, userId, roomCode in 1 json)
+      if (!storedStage) {
+        setStage(StageEnum.PLAY);
+      } else {
+        socket.emit("game:rejoin_room", { roomCode, userId });
+      }
     }
   }, [stage]);
 
@@ -61,6 +66,9 @@ const VersusScreen: React.FC = () => {
         word: word,
         checked: true,
       }));
+
+      socket.emit("game:solution", { solution: solutionPlayer, roomCode });
+
       setPlayers({
         ...players,
         solutions: solutionPlayer,
@@ -71,10 +79,52 @@ const VersusScreen: React.FC = () => {
   };
 
   useEffect(() => {
-    if (letters && players.solutions?.length === 0) {
+    if (!storedStage && letters[0] && players.solutions?.length === 0) {
       invokeLambda();
+      localStorage.setItem("stage", stage.toString());
     }
   }, [letters]);
+
+  useEffect(() => {
+    socket.on("rejoinedRoom", (data) => {
+      const { words, opponentWords, solutions, board, round } = data;
+
+      setLetters(board);
+      setPlayers({
+        [YOUR_NAME]: words || [],
+        [OPPONENTS_NAME]: opponentWords || [],
+        solutions: solutions || [],
+      });
+
+      setStage(round);
+    });
+
+    socket.on("challengeRound", (data) => {
+      const { words } = data;
+
+      setPlayers({
+        [YOUR_NAME]: [],
+        [OPPONENTS_NAME]: words || [],
+        solutions: [],
+      });
+    });
+
+    socket.on("resultRound", (data) => {
+      const { playerWordList, opponentWordList, room, solution } = data;
+
+      setPlayers({
+        [YOUR_NAME]: playerWordList || [],
+        [OPPONENTS_NAME]: opponentWordList || [],
+        solutions: solution || [],
+      });
+    });
+
+    return () => {
+      socket.off("rejoinedRoom");
+      socket.off("challengeRound");
+      socket.off("resultRound");
+    };
+  }, []);
 
   const renderStage = (stage: number) => {
     switch (stage) {
@@ -97,12 +147,12 @@ const VersusScreen: React.FC = () => {
         );
       case StageEnum.CHALLENGE:
         return (
-          <VersusChallengeStage 
+          <VersusChallengeStage
             setStage={setStage}
             players={players}
             setPlayers={setPlayers}
           />
-        )
+        );
       case StageEnum.RESULT:
         return (
           <VersusResultStage
@@ -113,7 +163,7 @@ const VersusScreen: React.FC = () => {
           />
         );
       default:
-        return <LoadingOverlay />
+        return <LoadingOverlay />;
     }
   };
   return <div>{renderStage(stage)}</div>;
@@ -121,4 +171,21 @@ const VersusScreen: React.FC = () => {
 
 export default VersusScreen;
 
-const defaultBoard = ["","","","","","","","","","","","","","","",""]
+const defaultBoard = [
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+];

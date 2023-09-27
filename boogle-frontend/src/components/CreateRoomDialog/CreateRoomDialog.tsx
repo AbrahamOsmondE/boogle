@@ -13,7 +13,7 @@ const CreateRoomDialog: React.FC<CreateRoomDialogProps> = ({ setOpen }) => {
   const [roomCode, setRoomCode] = useState("");
   const [copied, setCopied] = useState(false);
   const handleClose = () => {
-    socket.emit('game:cancel_room', {roomCode})
+    socket.emit("game:cancel_room", { roomCode });
     setOpen(false);
   };
 
@@ -25,30 +25,29 @@ const CreateRoomDialog: React.FC<CreateRoomDialogProps> = ({ setOpen }) => {
     setCopied(true);
   };
 
-  const navigate = useNavigate()
-  const dispatch = useAppDispatch()
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   useEffect(() => {
-    console.log('triggered')
-    socket.emit("game:create_room")
+    socket.emit("game:create_room");
 
     socket.on("roomCreated", (data) => {
-      setRoomCode(data.roomCode)
-      localStorage.setItem('roomCode', data.roomCode)
-      localStorage.setItem('userId', data.userId)
-    })
+      setRoomCode(data.roomCode);
+      localStorage.setItem("roomCode", data.roomCode);
+      localStorage.setItem("userId", data.userId);
+    });
 
     socket.on("initializeNextRound", (data) => {
-      console.log("triggered next round")
-      const board = data.board
-      dispatch(setGlobalBoard(board))
+      console.log("triggered next round");
+      const board = data.board;
+      dispatch(setGlobalBoard(board));
 
-      navigate('/versus')
-    })
+      navigate("/versus");
+    });
 
     return () => {
-      socket.off("roomCreated")
-      socket.off("initializeNextRound")
-    }
+      socket.off("roomCreated");
+      socket.off("initializeNextRound");
+    };
   }, []);
 
   return (

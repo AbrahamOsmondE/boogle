@@ -22,6 +22,7 @@ import { Players } from "../../stages/core";
 const WordListTabCleanUp: React.FC<WordListTabCleanUpProps> = ({
   players,
   setPlayers,
+  updateChecked,
 }) => {
   const [open, setOpen] = useState(false);
   const [editedWord, setEditedWord] = useState("");
@@ -52,6 +53,7 @@ const WordListTabCleanUp: React.FC<WordListTabCleanUpProps> = ({
       ...players,
       [playerName]: players[playerName].map((item, index) => {
         if (index === wordIndex) {
+          if (updateChecked) updateChecked(item.word, !item.checked);
           return {
             ...item,
             checked: !item.checked, // Invert the checked value
@@ -223,6 +225,7 @@ const WordListTabCleanUp: React.FC<WordListTabCleanUpProps> = ({
 export interface WordListTabCleanUpProps {
   players: Players;
   setPlayers: (value: Players) => void;
+  updateChecked?: (word: string, status: boolean) => void;
 }
 
 export default WordListTabCleanUp;

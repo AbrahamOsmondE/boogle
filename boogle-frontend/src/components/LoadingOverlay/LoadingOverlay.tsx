@@ -13,7 +13,7 @@ const LoadingOverlay: React.FC<LoadingOverlayProps> = () => {
         </div>
       </div>
     </div>
-  )
+  );
 };
 
 interface LoadingOverlayProps {}

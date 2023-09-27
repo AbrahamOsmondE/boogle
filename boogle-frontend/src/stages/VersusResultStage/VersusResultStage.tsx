@@ -4,10 +4,11 @@ import CSS from "csstype";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
 import { Button, Stack, Typography } from "@mui/material";
 import WordListTab from "../../components/WordListTab/WordListTab";
-import { Players, Solutions, Words } from "../core";
+import { Players, Solutions, StageEnum, Words } from "../core";
 import DefaultBoard from "../../components/BoggleBoard/DefaultBoard";
 import { useNavigate } from "react-router-dom";
 import { YOUR_NAME } from "../../constants";
+import { socket } from "../..";
 
 const VersusResultStage: React.FC<VersusResultStageProps> = ({
   setStage,
@@ -16,6 +17,8 @@ const VersusResultStage: React.FC<VersusResultStageProps> = ({
   solutions,
 }) => {
   const [count, setCount] = useState(3);
+  const roomCode = localStorage.getItem("roomCode");
+  const userId = localStorage.getItem("userId");
 
   const navigate = useNavigate();
   const isInSolution = (word: string) => {
@@ -27,18 +30,18 @@ const VersusResultStage: React.FC<VersusResultStageProps> = ({
     return player.reduce((res, cur) => {
       if (!cur.checked) return res;
       const wordLength = cur.word.length;
-      let score = [0,0];
+      let score = [0, 0];
 
       if (wordLength >= 8) {
-        score = [5,-4];
+        score = [5, -4];
       } else if (wordLength >= 7) {
-        score = [4,-3];
+        score = [4, -3];
       } else if (wordLength >= 6) {
-        score = [3,-2];
+        score = [3, -2];
       } else if (wordLength >= 5) {
-        score = [2,-1];
+        score = [2, -1];
       } else if (wordLength >= 3) {
-        score = [1,-1];
+        score = [1, -1];
       }
       return isInSolution(cur.word) ? res + score[0] : res + score[-1];
     }, 0);
@@ -87,6 +90,7 @@ const VersusResultStage: React.FC<VersusResultStageProps> = ({
                 }}
                 variant="contained"
                 onClick={() => {
+                  socket.emit("game:end_room");
                   navigate("/");
                 }}
               >
@@ -99,7 +103,8 @@ const VersusResultStage: React.FC<VersusResultStageProps> = ({
                 }}
                 variant="contained"
                 onClick={() => {
-                  setStage(0);
+                  socket.emit("game:end_room");
+                  setStage(StageEnum.PLAY);
                 }}
               >
                 Play again

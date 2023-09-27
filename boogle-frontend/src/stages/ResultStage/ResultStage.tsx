@@ -4,7 +4,7 @@ import CSS from "csstype";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
 import { Button, Stack, Typography } from "@mui/material";
 import WordListTab from "../../components/WordListTab/WordListTab";
-import { Players, Solutions, Words } from "../core";
+import { Players, Solutions, StageEnum, Words } from "../core";
 import DefaultBoard from "../../components/BoggleBoard/DefaultBoard";
 import { useNavigate } from "react-router-dom";
 import { YOUR_NAME } from "../../constants";
@@ -99,7 +99,7 @@ const ResultStage: React.FC<ResultStageProps> = ({
                 }}
                 variant="contained"
                 onClick={() => {
-                  setStage(0);
+                  setStage(StageEnum.PLAY);
                 }}
               >
                 Play again

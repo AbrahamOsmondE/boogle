@@ -4,9 +4,10 @@ import CSS from "csstype";
 import TextCountdown from "../../components/TextCountdown/TextCountdown";
 import { Button, Stack, Typography } from "@mui/material";
 import WordListTabCleanUp from "../../components/WordListTab/WordListTabCleanup";
-import { Players, Words } from "../core";
+import { Players, StageEnum, Words } from "../core";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
 import { OPPONENTS_NAME } from "../../constants";
+import { socket } from "../..";
 
 const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
   setStage,
@@ -15,6 +16,9 @@ const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
 }) => {
   const [count, setCount] = useState(3);
   const [time, setTime] = useState(180);
+
+  const userId = localStorage.get("userId");
+  const roomCode = localStorage.get("roomCode");
 
   const countScore = (player: Words[]) => {
     return player.reduce((res, cur) => {
@@ -37,6 +41,11 @@ const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
     }, 0);
   };
 
+  const updateChecked = (word: string, status: boolean) => {
+    const key = `${userId}_challenge`;
+    socket.emit("game:update_word_status", { word, status, key });
+  };
+
   const filterWords = () => {
     setPlayers({
       ...players,
@@ -56,8 +65,11 @@ const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
 
   useEffect(() => {
     if (time === 0) {
-      filterWords();
-      setStage(2);
+      const words = players[OPPONENTS_NAME].filter((val) => val.checked).map(
+        (wordObj) => wordObj.word,
+      );
+      socket.emit("game:next_round", { userId, roomCode, words });
+      setStage(StageEnum.RESULT);
     }
   }, [time]);
 
@@ -89,7 +101,11 @@ const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
               Done
             </Button>
           </Stack>
-          <WordListTabCleanUp players={players} setPlayers={setPlayers} />
+          <WordListTabCleanUp
+            players={players}
+            setPlayers={setPlayers}
+            updateChecked={updateChecked}
+          />
         </>
       )}
     </div>

@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Button,
-  Stack,
-  Dialog,
-  Typography,
-} from "@mui/material";
+import { Button, Stack, Dialog, Typography } from "@mui/material";
 import CreateRoomDialog from "../../components/CreateRoomDialog/CreateRoomDialog";
 import CSS from "csstype";
 import { useNavigate } from "react-router-dom";
@@ -27,7 +22,7 @@ const MainScreen: React.FC = () => {
     setJoinRoomOpen(false);
   };
 
-  const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -37,33 +32,33 @@ const MainScreen: React.FC = () => {
 
     //do exact same on join room dialog
     socket.on("joinedRoom", (data) => {
-      console.log(data)
-      if (!data.isPlayer) alert('Room is full!')
+      console.log(data);
+      if (!data.isPlayer) alert("Room is full!");
 
-      localStorage.setItem('roomCode', data.roomCode)
-      localStorage.setItem('userId', data.userId)
-      dispatch(setGlobalBoard(data.board))
+      localStorage.setItem("roomCode", data.roomCode);
+      localStorage.setItem("userId", data.userId);
+      dispatch(setGlobalBoard(data.board));
 
-      navigate('/versus')
-    })
+      navigate("/versus");
+    });
 
     socket.on("roomNotFound", (data) => {
-      alert('Room not found!')
-    })
+      alert("Room not found!");
+    });
 
     socket.on("roomJoiningError", (data) => {
-      alert(`Error joining room: ${data.error}`)
-    })
+      alert(`Error joining room: ${data.error}`);
+    });
 
     if (roomCodeParam) {
-      socket.emit("game:join_room", {roomCode: roomCodeParam})
+      socket.emit("game:join_room", { roomCode: roomCodeParam });
     }
 
     return () => {
-      socket.off("joinedRoom")
-      socket.off("roomNotFound")
-      socket.off("roomJoiningError")
-    }
+      socket.off("joinedRoom");
+      socket.off("roomNotFound");
+      socket.off("roomJoiningError");
+    };
   }, []);
 
   return (
@@ -80,7 +75,6 @@ const MainScreen: React.FC = () => {
             style={{ backgroundColor: "grey" }}
             variant="contained"
             onClick={() => {
-
               navigate("/practice");
             }}
           >

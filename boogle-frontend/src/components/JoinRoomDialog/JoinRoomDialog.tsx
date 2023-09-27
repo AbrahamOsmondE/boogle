@@ -14,8 +14,8 @@ const JoinRoomDialog: React.FC<JoinRoomDialogProps> = ({ setOpen }) => {
 
   const joinRoom = () => {
     if (roomCode) {
-      socket.emit("game:join_room", {roomCode: roomCode})
-      return
+      socket.emit("game:join_room", { roomCode: roomCode });
+      return;
     }
   };
 

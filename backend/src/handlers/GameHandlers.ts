@@ -5,7 +5,7 @@ export const registerGameHandlers = (io: any, socket: any) => {
     const roomCode = generateRoomCode();
 
     const room: Room = {
-      players: [{ id: socket.id}],
+      players: [{ id: socket.id }],
       spectators: [],
       board: generateBoard(),
       currentRound: RoundEnum.WAIT,
@@ -57,7 +57,7 @@ export const registerGameHandlers = (io: any, socket: any) => {
         return;
       }
       const opponentId = room.players[0].id;
-      room.players.push({ id: socket.id});
+      room.players.push({ id: socket.id });
 
       room.currentRound = 1;
 
@@ -69,19 +69,19 @@ export const registerGameHandlers = (io: any, socket: any) => {
         roomCode,
         userId: socket.id,
         isPlayer: true,
-        board: room.board
+        board: room.board,
       });
 
-      socket.to(opponentId).emit("initializeNextRound", {board: room.board});
+      socket.to(opponentId).emit("initializeNextRound", { board: room.board });
     } catch (error) {
       console.error(error);
-      socket.emit("roomJoiningError", {error});
+      socket.emit("roomJoiningError", { error });
     }
   };
 
   const appendWord = (data: any) => {
     const { userId, word, roomCode } = data;
-    console.log('word appended:', word)
+    console.log("word appended:", word);
 
     redisClient.LPUSH(userId, word);
 
@@ -89,20 +89,22 @@ export const registerGameHandlers = (io: any, socket: any) => {
   };
 
   const updateWordStatus = (data: any) => {
-    const { userId, word, status, round } = data;
-    const key = round === RoundEnum.CLEAN_UP ? userId : `${userId}_challenge`;
-    if (status) redisClient.HINCRBY(key, word, 1);
-    else redisClient.HINCRBY(key, word, -1);
+    const { word, status, key } = data;
+    if (status) {
+      redisClient.HINCRBY(key, word, 1);
+    } else {
+      redisClient.HINCRBY(key, word, -1);
+    }
   };
 
-  const getSolutions = (data: any) => {
+  const setSolutions = (data: any) => {
     const { solution, roomCode } = data;
     redisClient.HSET("solutions", roomCode, JSON.stringify(solution));
   };
 
   const nextRound = async (data: any) => {
     const { userId, roomCode, words } = data;
-    console.log(userId, words)
+
     const roomJson = await redisClient.HGET("rooms", roomCode);
     const room = JSON.parse(roomJson!) as Room;
 
@@ -132,18 +134,22 @@ export const registerGameHandlers = (io: any, socket: any) => {
       redisClient.HSET(roomCode, userId, JSON.stringify(words));
 
       redisClient.HSET(`${opponentId}_challenge`, countObject);
-      socket.to(roomCode).emit("challengeRound", { words });
+      socket.to(opponentId).emit("challengeRound", { words });
     } else if (newRoundRoom.currentRound === RoundEnum.RESULT) {
-      const playerWordList = await generateWordChecklist(userId);
+      const playerWordListPromise = generateWordChecklist(userId);
       const opponentWordList = words;
 
-      const solution = await redisClient.HGET("solutions", roomCode);
+      const solutionPromise = redisClient.HGET("solutions", roomCode);
 
       closeGame({
         userId,
         roomCode,
       });
 
+      const [playerWordList, solution] = await Promise.all([
+        playerWordListPromise,
+        solutionPromise,
+      ]);
       socket.to(roomCode).emit("resultRound", {
         playerWordList,
         opponentWordList,
@@ -156,42 +162,31 @@ export const registerGameHandlers = (io: any, socket: any) => {
   };
 
   const rejoinGame = async (data: any) => {
+    //handle disconnecting past round time, handle loading and handle when user disconnect.
     const { roomCode, userId } = data;
     const roomJson = await redisClient.HGET("rooms", roomCode);
     if (!roomJson) socket.emit("roomDoesNotExist");
 
     const room: Room = JSON.parse(roomJson!);
+    const board = room.board;
+    const round = room.currentRound;
 
     const opponent = room.players.filter((p) => {
       return p.id !== userId;
     });
 
     const opponentId = opponent[0].id;
-    let words: string[] = [];
-    let opponentWords: string[] = [];
-    let wordCheckedList: Word[] = [];
-    let solutions: string[] = [];
-
-    if (room.currentRound === RoundEnum.PLAY) {
-      words = await redisClient.LRANGE(userId, 0, -1);
-    } else if (room.currentRound === RoundEnum.CLEAN_UP) {
-      words = await redisClient.LRANGE(userId, 0, -1);
-      wordCheckedList = await generateWordChecklist(userId);
-    } else if (room.currentRound === RoundEnum.CHALLENGE) {
-      words = await redisClient.LRANGE(opponentId, 0, -1);
-      wordCheckedList = await generateWordChecklist(opponentId);
-    } else if (room.currentRound === RoundEnum.RESULT) {
-      words = await redisClient.LRANGE(userId, 0, -1);
-      opponentWords = await redisClient.LRANGE(opponentId, 0, -1);
-      const solutionsJson = await redisClient.HGET("solutions", roomCode);
-      if (solutionsJson) solutions = JSON.parse(solutionsJson);
-    }
+    const words: Word[] = await generateWordChecklist(userId);
+    const opponentWords: Word[] = await generateWordChecklist(opponentId);
+    const solutionsJson = await redisClient.HGET("solutions", roomCode);
+    const solutions: Word[] = solutionsJson ? JSON.parse(solutionsJson) : [];
 
     socket.emit("rejoinedRoom", {
+      board,
       words,
       opponentWords,
-      wordCheckedList,
       solutions,
+      round,
     });
   };
 
@@ -204,15 +199,15 @@ export const registerGameHandlers = (io: any, socket: any) => {
     redisClient.HDEL("solutions", roomCode);
   };
 
-  socket.on("game:create_room", createGame);
-  socket.on("game:join_room", joinGame);
-  socket.on("game:cancel_room", cancelRoomCreation);
-  socket.on("game:append_word", appendWord);
-  socket.on("game:update_word_status", updateWordStatus);
-  socket.on("game:solution", getSolutions);
-  socket.on("game:next_round", nextRound);
-  socket.on("game:rejoin_room", rejoinGame);
-  socket.on("game:end_room", closeGame);
+  socket.on("game:create_room", createGame); //done
+  socket.on("game:join_room", joinGame); //done
+  socket.on("game:cancel_room", cancelRoomCreation); //done
+  socket.on("game:append_word", appendWord); //done
+  socket.on("game:update_word_status", updateWordStatus); //done
+  socket.on("game:solution", setSolutions); //done
+  socket.on("game:next_round", nextRound); //done
+  socket.on("game:rejoin_room", rejoinGame); //done
+  socket.on("game:end_room", closeGame); //done
 };
 
 const generateRoomCode = () => {

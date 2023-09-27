@@ -5,7 +5,7 @@ import BoggleBoard from "../../components/BoggleBoard/BoggleBoard";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
 import TextCountdown from "../../components/TextCountdown/TextCountdown";
 import { Typography } from "@mui/material";
-import { Players } from "../core";
+import { Players, StageEnum } from "../core";
 import DefaultBoard from "../../components/BoggleBoard/DefaultBoard";
 
 const PlayStage: React.FC<PlayStageProps> = ({
@@ -33,7 +33,7 @@ const PlayStage: React.FC<PlayStageProps> = ({
     if (time === 0) {
       setWord("TIMES UP!");
       const timer = setTimeout(() => {
-        setStage(1);
+        setStage(StageEnum.CLEANUP);
       }, 3000);
       return () => clearTimeout(timer);
     }

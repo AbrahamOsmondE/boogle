@@ -5,7 +5,7 @@ import BoggleBoard from "../../components/BoggleBoard/BoggleBoard";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
 import TextCountdown from "../../components/TextCountdown/TextCountdown";
 import { Typography } from "@mui/material";
-import { Players } from "../core";
+import { Players, StageEnum } from "../core";
 import DefaultBoard from "../../components/BoggleBoard/DefaultBoard";
 import { socket } from "../..";
 import { YOUR_NAME } from "../../constants";
@@ -20,12 +20,12 @@ const VersusPlayStage: React.FC<VersusPlayStageProps> = ({
   const [count, setCount] = useState(3);
   const [time, setTime] = useState(180);
   const [word, setWord] = useState(" ");
-  const roomCode = localStorage.getItem('roomCode')
-  const userId = localStorage.getItem('userId')
+  const roomCode = localStorage.getItem("roomCode");
+  const userId = localStorage.getItem("userId");
 
-  const sendWord = (word:string) => {
-    socket.emit('game:append_word', {roomCode, userId, word})
-  }
+  const sendWord = (word: string) => {
+    socket.emit("game:append_word", { roomCode, userId, word });
+  };
 
   useEffect(() => {
     window.scrollTo(0, document.body.scrollHeight);
@@ -40,13 +40,11 @@ const VersusPlayStage: React.FC<VersusPlayStageProps> = ({
 
   useEffect(() => {
     if (time === 0) {
-      const words = players[YOUR_NAME].map((word:Words) => {
-        return word.word
-      })
+      const words = players[YOUR_NAME].map((word: Words) => word.word);
       setWord("TIMES UP!");
       const timer = setTimeout(() => {
-        socket.emit('game:next_round', {roomCode, userId, words: words})
-        setStage(1);
+        socket.emit("game:next_round", { roomCode, userId, words: words });
+        setStage(StageEnum.CLEANUP);
       }, 3000);
       return () => clearTimeout(timer);
     }
