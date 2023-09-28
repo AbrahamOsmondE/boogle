@@ -15,10 +15,10 @@ const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
   setPlayers,
 }) => {
   const [count, setCount] = useState(3);
-  const [time, setTime] = useState(180);
+  const [time, setTime] = useState(30);
 
-  const userId = localStorage.get("userId");
-  const roomCode = localStorage.get("roomCode");
+  const userId = localStorage.getItem("userId");
+  const roomCode = localStorage.getItem("roomCode");
 
   const countScore = (player: Words[]) => {
     return player.reduce((res, cur) => {
@@ -46,12 +46,6 @@ const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
     socket.emit("game:update_word_status", { word, status, key });
   };
 
-  const filterWords = () => {
-    setPlayers({
-      ...players,
-      [OPPONENTS_NAME]: players[OPPONENTS_NAME].filter((val) => val.checked),
-    });
-  };
   useEffect(() => {
     window.scrollTo(0, document.body.scrollHeight);
     const timer = setInterval(() => {
@@ -68,7 +62,10 @@ const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
       const words = players[OPPONENTS_NAME].filter((val) => val.checked).map(
         (wordObj) => wordObj.word,
       );
-      socket.emit("game:next_round", { userId, roomCode, words });
+      const stage = localStorage.getItem("stage") ?? "0";
+      const nextStage = parseInt(stage) + 1
+      socket.emit("game:next_round", { userId, roomCode, words, stage:parseInt(stage) });
+      localStorage.setItem("stage", nextStage.toString());
       setStage(StageEnum.RESULT);
     }
   }, [time]);
@@ -102,7 +99,7 @@ const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
             </Button>
           </Stack>
           <WordListTabCleanUp
-            players={players}
+            players={{[OPPONENTS_NAME]: players[OPPONENTS_NAME]}}
             setPlayers={setPlayers}
             updateChecked={updateChecked}
           />

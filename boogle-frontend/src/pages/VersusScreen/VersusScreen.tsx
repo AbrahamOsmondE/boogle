@@ -18,7 +18,7 @@ const VersusScreen: React.FC = () => {
   const [solutions, setSolutions] = useState<Solutions>({});
   const board = useAppSelector(selectGlobalBoard);
   const storedStage = localStorage.getItem("stage");
-  const numStage = parseInt(storedStage ?? "0");
+
   const roomCode = localStorage.getItem("roomCode");
   const userId = localStorage.getItem("userId");
 
@@ -81,7 +81,7 @@ const VersusScreen: React.FC = () => {
   useEffect(() => {
     if (!storedStage && letters[0] && players.solutions?.length === 0) {
       invokeLambda();
-      localStorage.setItem("stage", stage.toString());
+      localStorage.setItem("stage", '0');
     }
   }, [letters]);
 
@@ -101,9 +101,9 @@ const VersusScreen: React.FC = () => {
 
     socket.on("challengeRound", (data) => {
       const { words } = data;
-
+      console.log(words)
       setPlayers({
-        [YOUR_NAME]: [],
+        [YOUR_NAME]: players[YOUR_NAME] || [],
         [OPPONENTS_NAME]: words || [],
         solutions: [],
       });

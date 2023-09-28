@@ -32,6 +32,7 @@ const CreateRoomDialog: React.FC<CreateRoomDialogProps> = ({ setOpen }) => {
 
     socket.on("roomCreated", (data) => {
       setRoomCode(data.roomCode);
+      localStorage.clear();
       localStorage.setItem("roomCode", data.roomCode);
       localStorage.setItem("userId", data.userId);
     });

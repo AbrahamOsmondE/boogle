@@ -14,7 +14,7 @@ const WordListTab: React.FC<WordListTabProps> = ({ players, solutions }) => {
   };
 
   const isInSolution = (word: string) => {
-    const sortedWord = word.split("").sort().join("");
+    const sortedWord = word?.split("").sort().join("");
 
     return solutions[sortedWord]?.includes(word);
   };

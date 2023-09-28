@@ -11,7 +11,7 @@ import axios from "axios";
 import VersusScreen from "./pages/VersusScreen/VersusScreen";
 import io from "socket.io-client";
 
-const baseUrl = process.env.REACT_APP_BASE_URL || "http://localhost:8000";
+const baseUrl = process.env.REACT_APP_BASE_URL || "http://localhost:8000/api";
 const webSocketUrl =
   process.env.REACT_APP_WEBSOCKET_URL || "http://localhost:8001";
 export const boogleAxios = axios.create({

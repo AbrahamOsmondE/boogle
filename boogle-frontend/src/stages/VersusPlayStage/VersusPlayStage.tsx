@@ -18,7 +18,7 @@ const VersusPlayStage: React.FC<VersusPlayStageProps> = ({
   letters,
 }) => {
   const [count, setCount] = useState(3);
-  const [time, setTime] = useState(180);
+  const [time, setTime] = useState(30);
   const [word, setWord] = useState(" ");
   const roomCode = localStorage.getItem("roomCode");
   const userId = localStorage.getItem("userId");
@@ -43,7 +43,11 @@ const VersusPlayStage: React.FC<VersusPlayStageProps> = ({
       const words = players[YOUR_NAME].map((word: Words) => word.word);
       setWord("TIMES UP!");
       const timer = setTimeout(() => {
-        socket.emit("game:next_round", { roomCode, userId, words: words });
+        const stage = localStorage.getItem("stage") ?? "0";
+        const nextStage = parseInt(stage) + 1
+        socket.emit("game:next_round", { userId, roomCode, words, stage:parseInt(stage) });
+        localStorage.setItem("stage", nextStage.toString());
+
         setStage(StageEnum.CLEANUP);
       }, 3000);
       return () => clearTimeout(timer);

@@ -33,6 +33,7 @@ const MainScreen: React.FC = () => {
     //do exact same on join room dialog
     socket.on("joinedRoom", (data) => {
       console.log(data);
+      localStorage.clear();
       if (!data.isPlayer) alert("Room is full!");
 
       localStorage.setItem("roomCode", data.roomCode);

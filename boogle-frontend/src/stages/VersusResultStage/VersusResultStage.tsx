@@ -17,8 +17,6 @@ const VersusResultStage: React.FC<VersusResultStageProps> = ({
   solutions,
 }) => {
   const [count, setCount] = useState(3);
-  const roomCode = localStorage.getItem("roomCode");
-  const userId = localStorage.getItem("userId");
 
   const navigate = useNavigate();
   const isInSolution = (word: string) => {

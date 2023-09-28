@@ -37,31 +37,34 @@ export const registerGameHandlers = (io: any, socket: any) => {
       const room = JSON.parse(roomData) as Room;
 
       if (room.players.length === 2) {
-        const playerOne = room.players[0];
-        const playerTwo = room.players[1];
-        socket.emit("joinedRoom", {
-          roomCode,
-          playerOne: {
-            ...playerOne,
-            words: await redisClient.LRANGE(playerOne.id, 0, -1),
-          },
-          playerTwo: {
-            ...playerTwo,
-            words: await redisClient.LRANGE(playerTwo.id, 0, -1),
-          },
-          isPlayer: false,
-          currentRound: room.currentRound,
-        });
-        room.spectators.push(socket.id);
-        socket.join(`${roomCode}_spectate`);
+        // const playerOne = room.players[0];
+        // const playerTwo = room.players[1];
+        // socket.emit("joinedRoom", {
+        //   roomCode,
+        //   playerOne: {
+        //     ...playerOne,
+        //     words: await redisClient.LRANGE(playerOne.id, 0, -1),
+        //   },
+        //   playerTwo: {
+        //     ...playerTwo,
+        //     words: await redisClient.LRANGE(playerTwo.id, 0, -1),
+        //   },
+        //   isPlayer: false,
+        //   currentRound: room.currentRound,
+        // });
+        // room.spectators.push(socket.id);
+        // socket.join(`${roomCode}_spectate`);
         return;
       }
       const opponentId = room.players[0].id;
-      room.players.push({ id: socket.id });
 
-      room.currentRound = 1;
+      const newRoom:Room = {
+        ...room,
+        players: [...room.players, {id: socket.id} ],
+        currentRound: 1
+      }
 
-      redisClient.HSET("rooms", roomCode, JSON.stringify(room));
+      redisClient.HSET("rooms", roomCode, JSON.stringify(newRoom));
 
       socket.join(roomCode);
 
@@ -83,16 +86,19 @@ export const registerGameHandlers = (io: any, socket: any) => {
     const { userId, word, roomCode } = data;
     console.log("word appended:", word);
 
-    redisClient.LPUSH(userId, word);
+    redisClient.HINCRBY(userId, word, 1);
 
     socket.to(`${roomCode}_spectate`).emit("wordAppended", { userId, word });
   };
 
   const updateWordStatus = (data: any) => {
     const { word, status, key } = data;
+    
     if (status) {
+      console.log('word incremented: ', word);
       redisClient.HINCRBY(key, word, 1);
     } else {
+      console.log('word decremented: ', word);
       redisClient.HINCRBY(key, word, -1);
     }
   };
@@ -103,7 +109,7 @@ export const registerGameHandlers = (io: any, socket: any) => {
   };
 
   const nextRound = async (data: any) => {
-    const { userId, roomCode, words } = data;
+    const { userId, roomCode, words, stage } = data;
 
     const roomJson = await redisClient.HGET("rooms", roomCode);
     const room = JSON.parse(roomJson!) as Room;
@@ -124,17 +130,19 @@ export const registerGameHandlers = (io: any, socket: any) => {
 
     const newRoundRoom: Room = {
       ...room,
-      currentRound: room.currentRound + 1,
+      currentRound: stage + 1,
     };
+
     if (newRoundRoom.currentRound === RoundEnum.CLEAN_UP) {
       redisClient.HSET(roomCode, userId, JSON.stringify(words));
 
       redisClient.HSET(userId, countObject);
     } else if (newRoundRoom.currentRound === RoundEnum.CHALLENGE) {
+      console.log('challenge')
       redisClient.HSET(roomCode, userId, JSON.stringify(words));
 
       redisClient.HSET(`${opponentId}_challenge`, countObject);
-      socket.to(opponentId).emit("challengeRound", { words });
+      socket.to(opponentId).emit("challengeRound", { words:countObject });
     } else if (newRoundRoom.currentRound === RoundEnum.RESULT) {
       const playerWordListPromise = generateWordChecklist(userId);
       const opponentWordList = words;
@@ -150,7 +158,7 @@ export const registerGameHandlers = (io: any, socket: any) => {
         playerWordListPromise,
         solutionPromise,
       ]);
-      socket.to(roomCode).emit("resultRound", {
+      socket.to(userId).emit("resultRound", {
         playerWordList,
         opponentWordList,
         room,
@@ -290,9 +298,9 @@ interface Word {
   checked: boolean;
 }
 enum RoundEnum {
-  WAIT = 0,
-  PLAY = 1,
-  CLEAN_UP = 2,
-  CHALLENGE = 3,
-  RESULT = 4,
+  WAIT = -1,
+  PLAY = 0,
+  CLEAN_UP = 1,
+  CHALLENGE = 2,
+  RESULT = 3,
 }
