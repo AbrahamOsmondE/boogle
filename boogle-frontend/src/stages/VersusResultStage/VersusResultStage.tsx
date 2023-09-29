@@ -4,10 +4,9 @@ import CSS from "csstype";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
 import { Button, Stack, Typography } from "@mui/material";
 import WordListTab from "../../components/WordListTab/WordListTab";
-import { Players, Solutions, StageEnum, Words } from "../core";
+import { Players, StageEnum, Words } from "../core";
 import DefaultBoard from "../../components/BoggleBoard/DefaultBoard";
 import { useNavigate } from "react-router-dom";
-import { YOUR_NAME } from "../../constants";
 import { socket } from "../..";
 
 const VersusResultStage: React.FC<VersusResultStageProps> = ({
@@ -17,15 +16,17 @@ const VersusResultStage: React.FC<VersusResultStageProps> = ({
   solutions,
 }) => {
   const [count, setCount] = useState(3);
+  const [score, setScore] = useState(0);
+
+  const userId = localStorage.getItem("userId");
+  const roomCode = localStorage.getItem("roomCode");
 
   const navigate = useNavigate();
   const isInSolution = (word: string) => {
-    const sortedWord = word.split("").sort().join("");
-
-    return solutions[sortedWord]?.includes(word);
+    return players['solutions']?.some(wordObj => wordObj.word===word);
   };
   const countScore = (player: Words[]) => {
-    return player.reduce((res, cur) => {
+    return player?.reduce((res, cur) => {
       if (!cur.checked) return res;
       const wordLength = cur.word.length;
       let score = [0, 0];
@@ -41,7 +42,7 @@ const VersusResultStage: React.FC<VersusResultStageProps> = ({
       } else if (wordLength >= 3) {
         score = [1, -1];
       }
-      return isInSolution(cur.word) ? res + score[0] : res + score[-1];
+      return isInSolution(cur.word) ? res + score[0] : res + score[1];
     }, 0);
   };
 
@@ -78,7 +79,7 @@ const VersusResultStage: React.FC<VersusResultStageProps> = ({
             sx={{ width: "70%", marginTop: "1vh", marginBottom: "2vh" }}
           >
             <Typography variant="h6" align="center" sx={{ fontSize: "1rem" }}>
-              Score: {countScore(players[YOUR_NAME])}
+              Score: {score.toString()}
             </Typography>
             <Stack direction={"row"} spacing={1}>
               <Button
@@ -88,7 +89,7 @@ const VersusResultStage: React.FC<VersusResultStageProps> = ({
                 }}
                 variant="contained"
                 onClick={() => {
-                  socket.emit("game:end_room");
+                  socket.emit("game:end_room", {userId, roomCode});
                   navigate("/");
                 }}
               >
@@ -101,7 +102,7 @@ const VersusResultStage: React.FC<VersusResultStageProps> = ({
                 }}
                 variant="contained"
                 onClick={() => {
-                  socket.emit("game:end_room");
+                  socket.emit("game:end_room", {userId, roomCode});
                   setStage(StageEnum.PLAY);
                 }}
               >
@@ -110,7 +111,7 @@ const VersusResultStage: React.FC<VersusResultStageProps> = ({
             </Stack>
           </Stack>
           <DefaultBoard inputLetters={letters} />
-          <WordListTab players={players} solutions={solutions} />
+          <WordListTab players={players} solutions={solutions} setScore={setScore} />
         </>
       )}
     </div>
@@ -120,7 +121,7 @@ const VersusResultStage: React.FC<VersusResultStageProps> = ({
 export default VersusResultStage;
 
 interface VersusResultStageProps {
-  solutions: Solutions;
+  solutions: Words[];
   setStage: (value: number) => void;
   players: Players;
   letters: string[];

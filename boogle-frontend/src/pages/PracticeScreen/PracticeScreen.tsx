@@ -2,7 +2,7 @@ import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 import PlayStage from "../../stages/PlayStage/PlayStage";
 import CleanUpStage from "../../stages/CleanUpStage/CleanUpStage";
-import { Players, Solutions, StageEnum, Words } from "../../stages/core";
+import { Players, StageEnum, Words } from "../../stages/core";
 import ResultStage from "../../stages/ResultStage/ResultStage";
 import { boogleAxios } from "../..";
 import { YOUR_NAME } from "../../constants";
@@ -11,7 +11,7 @@ const PracticeScreen: React.FC = () => {
   const [players, setPlayers]: [Players, Dispatch<SetStateAction<Players>>] =
     useState({});
   const [letters, setLetters] = useState(generateRandomBoggleBoard());
-  const [solutions, setSolutions] = useState<Solutions>({});
+  const [solutions, setSolutions] = useState<Words[]>([]);
 
   useEffect(() => {
     if (stage === 0) {
@@ -20,7 +20,7 @@ const PracticeScreen: React.FC = () => {
         [YOUR_NAME]: [],
         solutions: [],
       });
-      setSolutions({});
+      setSolutions([]);
     }
   }, [stage]);
 
@@ -38,8 +38,6 @@ const PracticeScreen: React.FC = () => {
 
       const boardSolution = response.data;
 
-      setSolutions(boardSolution);
-
       const squashedSquashedList = Object.values(
         boardSolution,
       ).flat() as string[];
@@ -47,6 +45,7 @@ const PracticeScreen: React.FC = () => {
         word: word,
         checked: true,
       }));
+      setSolutions(solutionPlayer);
       setPlayers({
         ...players,
         solutions: solutionPlayer,

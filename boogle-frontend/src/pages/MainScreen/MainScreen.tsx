@@ -31,15 +31,13 @@ const MainScreen: React.FC = () => {
     const roomCodeParam = queryParams.get("join");
 
     //do exact same on join room dialog
-    socket.on("joinedRoom", (data) => {
-      console.log(data);
-      localStorage.clear();
+    socket.on("joinedRoom", (data) => {      
       if (!data.isPlayer) alert("Room is full!");
 
       localStorage.setItem("roomCode", data.roomCode);
       localStorage.setItem("userId", data.userId);
       dispatch(setGlobalBoard(data.board));
-
+      console.log(localStorage)
       navigate("/versus");
     });
 
@@ -52,6 +50,7 @@ const MainScreen: React.FC = () => {
     });
 
     if (roomCodeParam) {
+      localStorage.clear();
       socket.emit("game:join_room", { roomCode: roomCodeParam });
     }
 

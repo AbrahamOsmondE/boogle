@@ -19,24 +19,27 @@ const VersusCleanUpStage: React.FC<VersusCleanUpStageProps> = ({
   const userId = localStorage.getItem("userId");
   const roomCode = localStorage.getItem("roomCode");
 
+  const isInSolution = (word: string) => {
+    return players['solutions']?.some(wordObj => wordObj.word===word);
+  };
   const countScore = (player: Words[]) => {
-    return player.reduce((res, cur) => {
+    return player?.reduce((res, cur) => {
       if (!cur.checked) return res;
       const wordLength = cur.word.length;
-      let score = 0;
+      let score = [0, 0];
 
       if (wordLength >= 8) {
-        score = 5;
+        score = [5, -4];
       } else if (wordLength >= 7) {
-        score = 4;
+        score = [4, -3];
       } else if (wordLength >= 6) {
-        score = 3;
+        score = [3, -2];
       } else if (wordLength >= 5) {
-        score = 2;
+        score = [2, -1];
       } else if (wordLength >= 3) {
-        score = 1;
+        score = [1, -1];
       }
-      return res + score;
+      return isInSolution(cur.word) ? res + score[0] : res + score[1];
     }, 0);
   };
 
@@ -55,6 +58,10 @@ const VersusCleanUpStage: React.FC<VersusCleanUpStageProps> = ({
       clearInterval(timer);
     };
   }, []);
+
+  const handleWordEdit = (prevWord: string, word: string) => {
+    socket.emit("game:edit_word", {userId, prevWord, word})
+  }
 
   useEffect(() => {
     if (time === 0) {
@@ -101,6 +108,7 @@ const VersusCleanUpStage: React.FC<VersusCleanUpStageProps> = ({
             players={{[YOUR_NAME]:players[YOUR_NAME]}}
             setPlayers={setPlayers}
             updateChecked={updateChecked}
+            handleWordEdit={handleWordEdit}
           />
         </>
       )}

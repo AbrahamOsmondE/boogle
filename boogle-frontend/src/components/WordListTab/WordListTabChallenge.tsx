@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   Tabs,
   Tab,
@@ -6,47 +6,23 @@ import {
   ListItem,
   ListItemText,
   Checkbox,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  TextField,
 } from "@mui/material";
 import TabPanel from "@mui/lab/TabPanel";
-import EditIcon from "@mui/icons-material/Edit";
 import { TabContext } from "@mui/lab";
-import { Players } from "../../stages/core";
+import { Players, Words } from "../../stages/core";
 
-const WordListTabCleanUp: React.FC<WordListTabCleanUpProps> = ({
+const WordListTabChallenge: React.FC<WordListTabChallengeProps> = ({
   players,
   setPlayers,
   updateChecked,
-  handleWordEdit,
 }) => {
-  const [open, setOpen] = useState(false);
-  const [editedWord, setEditedWord] = useState("");
-  const [editPlayerName, setEditPlayerName] = useState("");
-  const [editWordIndex, setEditWordIndex] = useState(-1);
-  const [error, setError] = useState(false);
-
   const [selectedTab, setSelectedTab] = useState("0");
-
-  const textFieldRef = useRef<HTMLInputElement | null>(null);
 
   const handleTabChange = (
     event: React.SyntheticEvent<Element, Event>,
     newValue: string,
   ) => {
     setSelectedTab(newValue);
-  };
-
-  const handleEditClick = (playerName: string, wordIndex: number) => {
-    setEditPlayerName(playerName);
-    setEditWordIndex(wordIndex);
-    setEditedWord(players[playerName][wordIndex].word);
-    setOpen(true);
   };
 
   const handleCheckboxToggle = (playerName: string, wordIndex: number) => {
@@ -57,42 +33,13 @@ const WordListTabCleanUp: React.FC<WordListTabCleanUpProps> = ({
           if (updateChecked) updateChecked(item.word, !item.checked);
           return {
             ...item,
-            checked: !item.checked, // Invert the checked value
+            checked: !item.checked,
           };
         }
         return item;
       }),
     };
     setPlayers(updatedPlayers);
-  };
-
-  const handleClose = () => {
-    if (textFieldRef.current) textFieldRef.current.blur();
-    setOpen(false);
-  };
-
-  const handleSave = () => {
-    const alphabetPattern = /^[a-zA-Z]+$/;
-
-    if (!alphabetPattern.test(editedWord)) {
-      setError(true);
-      return;
-    }
-    const updatedPlayers = {
-      ...players,
-      [editPlayerName]: players[editPlayerName].map((item, index) => {
-        if (index === editWordIndex) {
-          if (handleWordEdit) handleWordEdit(item.word, editedWord)
-          return {
-            ...item,
-            word: editedWord.toUpperCase(),
-          };
-        }
-        return item;
-      }),
-    };
-    setPlayers(updatedPlayers);
-    setOpen(false);
   };
 
   return (
@@ -183,10 +130,6 @@ const WordListTabCleanUp: React.FC<WordListTabCleanUpProps> = ({
                         },
                       }}
                     />
-                    <EditIcon
-                      onClick={() => handleEditClick(playerName, wordIndex)}
-                      style={{ height: "100%" }}
-                    />
                   </ListItem>
                 ))}
               </List>
@@ -194,41 +137,14 @@ const WordListTabCleanUp: React.FC<WordListTabCleanUpProps> = ({
           ))}
         </div>
       </TabContext>
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Edit Answer</DialogTitle>
-        <DialogContent>
-          {error && <DialogContentText>Alphabet only!</DialogContentText>}
-          <TextField
-            error={error}
-            autoFocus
-            margin="dense"
-            value={editedWord}
-            onChange={(e) => {
-              setError(false);
-              setEditedWord(e.target.value);
-            }}
-            fullWidth
-            inputRef={textFieldRef}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleSave} color="primary">
-            Submit
-          </Button>
-        </DialogActions>
-      </Dialog>
     </>
   );
 };
 
-export interface WordListTabCleanUpProps {
+export interface WordListTabChallengeProps {
   players: Players;
   setPlayers: (value: Players) => void;
   updateChecked?: (word: string, status: boolean) => void;
-  handleWordEdit?: (prevWord: string, word: string) => void;
 }
 
-export default WordListTabCleanUp;
+export default WordListTabChallenge;

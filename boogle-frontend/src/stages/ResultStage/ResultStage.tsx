@@ -4,7 +4,7 @@ import CSS from "csstype";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
 import { Button, Stack, Typography } from "@mui/material";
 import WordListTab from "../../components/WordListTab/WordListTab";
-import { Players, Solutions, StageEnum, Words } from "../core";
+import { Players, StageEnum, Words } from "../core";
 import DefaultBoard from "../../components/BoggleBoard/DefaultBoard";
 import { useNavigate } from "react-router-dom";
 import { YOUR_NAME } from "../../constants";
@@ -19,12 +19,10 @@ const ResultStage: React.FC<ResultStageProps> = ({
 
   const navigate = useNavigate();
   const isInSolution = (word: string) => {
-    const sortedWord = word.split("").sort().join("");
-
-    return solutions[sortedWord]?.includes(word);
+    return players['solutions']?.some(wordObj => wordObj.word === word);
   };
   const countScore = (player: Words[]) => {
-    return player.reduce((res, cur) => {
+    return player?.reduce((res, cur) => {
       if (!cur.checked) return res;
       const wordLength = cur.word.length;
       let score = 0;
@@ -117,7 +115,7 @@ const ResultStage: React.FC<ResultStageProps> = ({
 export default ResultStage;
 
 interface ResultStageProps {
-  solutions: Solutions;
+  solutions: Words[];
   setStage: (value: number) => void;
   players: Players;
   letters: string[];

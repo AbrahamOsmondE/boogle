@@ -2,21 +2,45 @@ import React, { useState } from "react";
 import { Tabs, Tab, List, ListItem, ListItemText } from "@mui/material";
 import TabPanel from "@mui/lab/TabPanel";
 import { TabContext } from "@mui/lab";
-import { Players, Solutions } from "../../stages/core";
+import { Players, Words } from "../../stages/core";
 
-const WordListTab: React.FC<WordListTabProps> = ({ players, solutions }) => {
+const WordListTab: React.FC<WordListTabProps> = ({ players, solutions, setScore }) => {
   const [selectedTab, setSelectedTab] = useState("0");
   const handleTabChange = (
     event: React.SyntheticEvent<Element, Event>,
     newValue: string,
   ) => {
     setSelectedTab(newValue);
+    Object.keys(players).map((player, index) => {
+      if (newValue === index.toString()) {
+        const score = countScore(players[player]) ?? 0
+        if(setScore) setScore(score)
+      }
+    })
   };
 
   const isInSolution = (word: string) => {
-    const sortedWord = word?.split("").sort().join("");
+    return players['solutions']?.some(wordObj => wordObj.word===word);
+  };
+  const countScore = (player: Words[]) => {
+    return player?.reduce((res, cur) => {
+      if (!cur.checked) return res;
+      const wordLength = cur.word.length;
+      let score = [0, 0];
 
-    return solutions[sortedWord]?.includes(word);
+      if (wordLength >= 8) {
+        score = [5, -4];
+      } else if (wordLength >= 7) {
+        score = [4, -3];
+      } else if (wordLength >= 6) {
+        score = [3, -2];
+      } else if (wordLength >= 5) {
+        score = [2, -1];
+      } else if (wordLength >= 3) {
+        score = [1, -1];
+      }
+      return isInSolution(cur.word) ? res + score[0] : res + score[1];
+    }, 0);
   };
 
   return (
@@ -93,7 +117,8 @@ const WordListTab: React.FC<WordListTabProps> = ({ players, solutions }) => {
 
 interface WordListTabProps {
   players: Players;
-  solutions: Solutions;
+  solutions: Words[];
+  setScore?: (score: number) => void;
 }
 
 export default WordListTab;

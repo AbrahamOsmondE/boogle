@@ -38,7 +38,6 @@ const CreateRoomDialog: React.FC<CreateRoomDialogProps> = ({ setOpen }) => {
     });
 
     socket.on("initializeNextRound", (data) => {
-      console.log("triggered next round");
       const board = data.board;
       dispatch(setGlobalBoard(board));
 

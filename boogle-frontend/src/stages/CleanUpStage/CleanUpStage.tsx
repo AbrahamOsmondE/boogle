@@ -17,7 +17,7 @@ const CleanUpStage: React.FC<CleanUpStageProps> = ({
   const [time, setTime] = useState(180);
 
   const countScore = (player: Words[]) => {
-    return player.reduce((res, cur) => {
+    return player?.reduce((res, cur) => {
       if (!cur.checked) return res;
       const wordLength = cur.word.length;
       let score = 0;

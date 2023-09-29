@@ -3,11 +3,11 @@ import React, { useEffect, useState } from "react";
 import CSS from "csstype";
 import TextCountdown from "../../components/TextCountdown/TextCountdown";
 import { Button, Stack, Typography } from "@mui/material";
-import WordListTabCleanUp from "../../components/WordListTab/WordListTabCleanup";
 import { Players, StageEnum, Words } from "../core";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
 import { OPPONENTS_NAME } from "../../constants";
 import { socket } from "../..";
+import WordListTabChallenge from "../../components/WordListTab/WordListTabChallenge";
 
 const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
   setStage,
@@ -20,24 +20,27 @@ const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
   const userId = localStorage.getItem("userId");
   const roomCode = localStorage.getItem("roomCode");
 
+  const isInSolution = (word: string) => {
+    return players['solutions']?.some(wordObj => wordObj.word===word);
+  };
   const countScore = (player: Words[]) => {
-    return player.reduce((res, cur) => {
+    return player?.reduce((res, cur) => {
       if (!cur.checked) return res;
       const wordLength = cur.word.length;
-      let score = 0;
+      let score = [0, 0];
 
       if (wordLength >= 8) {
-        score = 11;
+        score = [5, -4];
       } else if (wordLength >= 7) {
-        score = 5;
+        score = [4, -3];
       } else if (wordLength >= 6) {
-        score = 3;
+        score = [3, -2];
       } else if (wordLength >= 5) {
-        score = 2;
+        score = [2, -1];
       } else if (wordLength >= 3) {
-        score = 1;
+        score = [1, -1];
       }
-      return res + score;
+      return isInSolution(cur.word) ? res + score[0] : res + score[1];
     }, 0);
   };
 
@@ -56,7 +59,7 @@ const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
       clearInterval(timer);
     };
   }, []);
-
+  
   useEffect(() => {
     if (time === 0) {
       const words = players[OPPONENTS_NAME].filter((val) => val.checked).map(
@@ -98,7 +101,7 @@ const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
               Done
             </Button>
           </Stack>
-          <WordListTabCleanUp
+          <WordListTabChallenge
             players={{[OPPONENTS_NAME]: players[OPPONENTS_NAME]}}
             setPlayers={setPlayers}
             updateChecked={updateChecked}

@@ -84,7 +84,6 @@ export const registerGameHandlers = (io: any, socket: any) => {
 
   const appendWord = (data: any) => {
     const { userId, word, roomCode } = data;
-    console.log("word appended:", word);
 
     redisClient.HINCRBY(userId, word, 1);
 
@@ -95,13 +94,18 @@ export const registerGameHandlers = (io: any, socket: any) => {
     const { word, status, key } = data;
     
     if (status) {
-      console.log('word incremented: ', word);
       redisClient.HINCRBY(key, word, 1);
     } else {
-      console.log('word decremented: ', word);
       redisClient.HINCRBY(key, word, -1);
     }
   };
+
+  const editWord = (data: any) => {
+    const {userId, prevWord, word} = data
+
+    redisClient.HINCRBY(userId, prevWord, -1);
+    redisClient.HINCRBY(userId, word, 1)
+  }
 
   const setSolutions = (data: any) => {
     const { solution, roomCode } = data;
@@ -138,9 +142,8 @@ export const registerGameHandlers = (io: any, socket: any) => {
 
       redisClient.HSET(userId, countObject);
     } else if (newRoundRoom.currentRound === RoundEnum.CHALLENGE) {
-      console.log('challenge')
       redisClient.HSET(roomCode, userId, JSON.stringify(words));
-
+      
       redisClient.HSET(`${opponentId}_challenge`, countObject);
       socket.to(opponentId).emit("challengeRound", { words:countObject });
     } else if (newRoundRoom.currentRound === RoundEnum.RESULT) {
@@ -170,7 +173,6 @@ export const registerGameHandlers = (io: any, socket: any) => {
   };
 
   const rejoinGame = async (data: any) => {
-    //handle disconnecting past round time, handle loading and handle when user disconnect.
     const { roomCode, userId } = data;
     const roomJson = await redisClient.HGET("rooms", roomCode);
     if (!roomJson) socket.emit("roomDoesNotExist");
@@ -216,6 +218,7 @@ export const registerGameHandlers = (io: any, socket: any) => {
   socket.on("game:next_round", nextRound); //done
   socket.on("game:rejoin_room", rejoinGame); //done
   socket.on("game:end_room", closeGame); //done
+  socket.on("game:edit_word", editWord); 
 };
 
 const generateRoomCode = () => {
@@ -242,20 +245,17 @@ const generateBoard = () => {
     ["D", "E", "I", "L", "R", "X"],
   ];
 
-  const boggleBoard = [];
+  const shuffledArray = [...boggleDice].sort(() => Math.random() - 0.5);
 
-  for (let i = 0; i < 16; i++) {
-    const dieIndex = Math.floor(Math.random() * boggleDice.length);
-    const dieFaces = boggleDice[dieIndex];
-    const faceIndex = Math.floor(Math.random() * dieFaces.length);
-    boggleBoard.push(dieFaces[faceIndex]);
-  }
-
-  return boggleBoard;
+  return shuffledArray.map((die) => {
+    const faceIndex = Math.floor(Math.random() * die.length)
+    return die[faceIndex];
+  });
 };
 
 const generateWordChecklist = async (playerId: string) => {
   const wordObjects = await redisClient.HGETALL(playerId);
+  console.log(wordObjects)
   const words: string[] = Object.keys(wordObjects);
   const wordCount: Record<string, number> = Object.keys(wordObjects).reduce(
     (acc: Record<string, number>, key: string) => {
@@ -266,7 +266,7 @@ const generateWordChecklist = async (playerId: string) => {
   );
 
   return words.reduce((res: Word[], curr: string) => {
-    if (wordCount[curr] >= 0) {
+    if (wordCount[curr] > 0) {
       res.push({
         word: curr,
         checked: true,

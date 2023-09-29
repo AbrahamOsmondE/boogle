@@ -2,7 +2,7 @@ import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 import VersusPlayStage from "../../stages/VersusPlayStage/VersusPlayStage";
 import VersusCleanUpStage from "../../stages/VersusCleanUpStage/VersusCleanUpStage";
-import { Players, Solutions, StageEnum, Words } from "../../stages/core";
+import { Players, StageEnum, Words } from "../../stages/core";
 import VersusResultStage from "../../stages/VersusResultStage/VersusResultStage";
 import { boogleAxios, socket } from "../..";
 import { OPPONENTS_NAME, YOUR_NAME } from "../../constants";
@@ -15,7 +15,7 @@ const VersusScreen: React.FC = () => {
   const [players, setPlayers]: [Players, Dispatch<SetStateAction<Players>>] =
     useState({});
   const [letters, setLetters] = useState(defaultBoard);
-  const [solutions, setSolutions] = useState<Solutions>({});
+  const [solutions, setSolutions] = useState<Words[]>([]);
   const board = useAppSelector(selectGlobalBoard);
   const storedStage = localStorage.getItem("stage");
 
@@ -30,7 +30,7 @@ const VersusScreen: React.FC = () => {
         [OPPONENTS_NAME]: [],
         solutions: [],
       });
-      setSolutions({});
+      setSolutions([]);
     } else if (stage === StageEnum.CLEANUP) {
     } else if (stage === StageEnum.CHALLENGE) {
     } else if (stage === StageEnum.RESULT) {
@@ -57,8 +57,6 @@ const VersusScreen: React.FC = () => {
 
       const boardSolution = response.data;
 
-      setSolutions(boardSolution);
-
       const squashedSquashedList = Object.values(
         boardSolution,
       ).flat() as string[];
@@ -67,6 +65,7 @@ const VersusScreen: React.FC = () => {
         checked: true,
       }));
 
+      setSolutions(solutionPlayer);
       socket.emit("game:solution", { solution: solutionPlayer, roomCode });
 
       setPlayers({
@@ -101,7 +100,6 @@ const VersusScreen: React.FC = () => {
 
     socket.on("challengeRound", (data) => {
       const { words } = data;
-      console.log(words)
       setPlayers({
         [YOUR_NAME]: players[YOUR_NAME] || [],
         [OPPONENTS_NAME]: words || [],
@@ -110,7 +108,7 @@ const VersusScreen: React.FC = () => {
     });
 
     socket.on("resultRound", (data) => {
-      const { playerWordList, opponentWordList, room, solution } = data;
+      const { playerWordList, opponentWordList, solution } = data;
 
       setPlayers({
         [YOUR_NAME]: playerWordList || [],
