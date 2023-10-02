@@ -1,3 +1,5 @@
+import { faker } from "@faker-js/faker"
+
 export const createSocketPromise = <T>(
   client:any, 
   listener:string, 
@@ -32,6 +34,22 @@ export const joinRoom = (client, roomCode) => {
   client.emit('game:join_room', { roomCode })
 
   return promise
+}
+
+export const sleep = async (duration: number) => {
+  return new Promise<void>((resolve) => {
+    setTimeout(() => {
+      resolve();
+    }, duration);
+  });
+}
+
+export const generateRandomWords = (count) => {
+  const words:string[] = [];
+  for (let i = 0; i < count; i++) {
+    words.push(faker.word.noun());
+  }
+  return words;
 }
 
 export interface PlayerData {

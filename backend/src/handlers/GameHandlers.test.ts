@@ -1,7 +1,7 @@
 import io from 'socket.io-client';
 import { createClient } from "redis";
-import { PlayerData, createRoom, createSocketPromise, joinRoom } from './utils/test-utils';
-import { getRoomData } from './utils/GameHandlers-utils';
+import { PlayerData, createRoom, createSocketPromise, generateRandomWords, joinRoom, sleep } from './utils/test-utils';
+import { counter, getRoomData } from './utils/GameHandlers-utils';
 import { Room } from './dto/GameHandlersDto';
 
 const webSocketUrl =
@@ -12,6 +12,18 @@ const opponentClient = io(webSocketUrl);
 const spectatorClient = io(webSocketUrl);
 
 const redisClient = createClient()
+const sleepClient = {
+  emit: async (keyword, data) => {
+    client.emit(keyword, data)
+    await sleep(200)
+  }
+}
+const sleepOpponentClient = {
+  emit: async (keyword, data) => {
+    opponentClient.emit(keyword, data)
+    await sleep(200)
+  }
+}
 
 describe('test game handler', () => {
   beforeAll(async () => {
@@ -51,7 +63,7 @@ describe('test game handler', () => {
     const { roomCode } = await createRoom(client)
 
     const cancelRoomPromise = createSocketPromise(client, 'roomCanceled', (data) => data)
-    client.emit('game:cancel_room', {roomCode})
+    await sleepClient.emit('game:cancel_room', {roomCode})
 
     await cancelRoomPromise
 
@@ -101,18 +113,118 @@ describe('test game handler', () => {
 
   it('should append word', async () => {
     const {roomCode, userId} = await createRoom(client)
-    const {userId:opponentId} = await joinRoom(opponentClient, roomCode)
+    await joinRoom(opponentClient, roomCode)
 
     const word = 'BOOGLE'
     const promise = createSocketPromise(opponentClient, 'wordAppended', (data) => data) as Promise<PlayerData>
-    client.emit('game:append_word', {roomCode, userId, word})
+    await sleepClient.emit('game:append_word', {roomCode, userId, word})
     
     const data = await promise
 
     const wordCount = await redisClient.HGET(userId, word)
 
-    expect(wordCount).toEqual(1)
+    expect(wordCount).toEqual("1")
     expect(data.userId).toEqual(userId)
     expect(data.word).toEqual(word)
+  })
+
+  it('should update word status', async () => {
+    const {roomCode, userId} = await createRoom(client)
+    await joinRoom(opponentClient, roomCode)
+
+    const word = 'BOOGLE'
+    await redisClient.HINCRBY(userId, word, 1)
+
+    await sleepClient.emit('game:update_word_status', {word, status:false, key:userId})
+
+    const newCount = await redisClient.HGET(userId, word)
+    await sleepClient.emit('game:update_word_status', {word, status:true, key:userId})
+
+    const newNewCount = await redisClient.HGET(userId, word)
+
+    expect(newCount).toEqual("0")
+    expect(newNewCount).toEqual("1")
+  })
+
+  it('should set solutions', async () => {
+    await sleepClient.emit('game:solution', {solution:[{word:'test',checked:true}], roomCode:'testroom'})
+
+    const solutionJson = await redisClient.HGET("solutions", 'testroom')
+    const solution = JSON.parse(solutionJson!)
+
+    expect(solutionJson).toBeDefined()
+    expect(solution[0].word).toEqual('test')
+    expect(solution[0].checked).toEqual(true)
+  })
+
+  it('should proceed to clean up round with idempotency', async () => {
+    const { roomCode, userId } = await createRoom(client)
+    const { userId:opponentId } = await joinRoom(opponentClient, roomCode)
+
+    const playerWords = generateRandomWords(10)
+    const opponentWords = generateRandomWords(15)
+
+    sleepClient.emit('game:next_round', {userId, roomCode, words:playerWords, stage: 0})
+    await sleepOpponentClient.emit('game:next_round', {userId: opponentId, roomCode, words:opponentWords, stage:0})
+
+    const cachedPlayerWords = await redisClient.HGETALL(userId)
+    const cachedOpponentWords = await redisClient.HGETALL(opponentId)
+
+    expect(counter(playerWords)).toEqual(counter(cachedPlayerWords))
+    expect(counter(opponentWords)).toEqual(counter(cachedOpponentWords))
+
+    const newRoundRoomJson = await redisClient.HGET('rooms', roomCode)
+    const newRoundRoom = JSON.parse(newRoundRoomJson!)
+
+    expect(newRoundRoom.currentRound).toEqual(1)
+  })
+
+  it('should proceed to challenge round', async () => {
+    const { roomCode, userId } = await createRoom(client)
+    const { userId:opponentId } = await joinRoom(opponentClient, roomCode)
+
+    const playerWords = generateRandomWords(10)
+    const opponentWords = generateRandomWords(15)
+
+    const playerChallengeRoundPromise = createSocketPromise(client, 'challengeRound', (data) => data)
+    const opponentChallengeRoundPromise = createSocketPromise(opponentClient, 'challengeRound', (data) => data)
+
+    await sleepClient.emit('game:next_round', {userId, roomCode, words:playerWords, stage: 1})
+    await sleepOpponentClient.emit('game:next_round', {userId: opponentId, roomCode, words:opponentWords, stage:1})
+
+    const newRoundRoomJson = await redisClient.HGET('rooms', roomCode)
+    const newRoundRoom = JSON.parse(newRoundRoomJson!)
+
+    const [{words:playerReceivedChallengeRoundWords}, {words:opponentReceivedChallengeRoundWords}] = await Promise.all([playerChallengeRoundPromise, opponentChallengeRoundPromise])
+
+    expect(newRoundRoom.currentRound).toEqual(2)
+    expect(playerReceivedChallengeRoundWords).toEqual(opponentWords.map((word:string) => {return {word,checked:true}}))
+    expect(opponentReceivedChallengeRoundWords).toEqual(playerWords.map((word:string) => {return {word,checked:true}}))
+  })
+
+  it('should proceed to result round and close room', async () => {
+    const { roomCode, userId } = await createRoom(client)
+    const { userId:opponentId } = await joinRoom(opponentClient, roomCode)
+
+    await redisClient.HSET("solutions", roomCode, '["word"]')
+    const playerWords = generateRandomWords(10)
+    const opponentWords = generateRandomWords(15)
+
+    const playerResultRoundPromise = createSocketPromise(client, 'resultRound', (data) => data)
+    const opponentResultRoundPromise = createSocketPromise(opponentClient, 'resultRound', (data) => data)
+
+    sleepClient.emit('game:next_round', {userId, roomCode, words:opponentWords, stage: 2})
+    await sleepOpponentClient.emit('game:next_round', {userId: opponentId, roomCode, words:playerWords, stage:2})
+    
+    await sleep(500)
+
+    const newRoundRoomJson = await redisClient.HGET('rooms', roomCode)
+
+    const [{playerWordList:playerReceivedWords, solution}, {playerWordList:opponentReceivedWords}] = await Promise.all([playerResultRoundPromise, opponentResultRoundPromise])
+
+    expect(newRoundRoomJson).toEqual(null)
+    expect(solution).toEqual(['word'])
+    expect(playerReceivedWords).toEqual(playerWords.map((word:string) => {return {word,checked:true}}))
+    expect(opponentReceivedWords).toEqual(opponentWords.map((word:string) => {return {word,checked:true}}))
   })
 })

@@ -39,26 +39,39 @@ export const generateBoard = () => {
     return die[faceIndex];
   });
 };
-
-export const generateWordChecklist = async (client, playerId: string) => {
-  const wordObjects = await client.HGETALL(playerId);
-
-  const words: string[] = Object.keys(wordObjects);
-  const wordCount: Record<string, number> = Object.keys(wordObjects).reduce(
+export const counter = (words:string[] | Record<string, string>):Record<string, number> => {
+  if (Array.isArray(words)) {
+    return words.reduce(
+      (acc: Record<string, number>, curr: string) => {
+        acc[curr] = (acc[curr] || 0) + 1;
+        return acc;
+      },
+      {},
+    );
+  } else {
+    return Object.keys(words).reduce(
     (acc: Record<string, number>, key: string) => {
-      acc[key] = parseFloat(wordObjects[key]);
+      acc[key] = parseFloat(words[key]);
       return acc;
     },
     {},
   );
+  }
+}
+export const generateWordChecklist = async (client, playerId: string) => {
+  const wordObjects = await client.HGETALL(playerId);
+
+  const words: string[] = Object.keys(wordObjects);
+  const wordCount: Record<string, number> = counter(wordObjects)
 
   return words.reduce((res: Word[], curr: string) => {
     if (wordCount[curr] > 0) {
-      res.push({
-        word: curr,
-        checked: true,
-      });
-      wordCount[curr] -= 1;
+      for (let i = 0; i < wordCount[curr]; i++) {
+        res.push({
+          word: curr,
+          checked: true,
+        });
+      }
     } else {
       res.push({
         word: curr,

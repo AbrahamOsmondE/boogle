@@ -107,12 +107,12 @@ const VersusScreen: React.FC = () => {
       });
     });
 
-    socket.on("resultRound", (data) => {
-      const { playerWordList, opponentWordList, solution } = data;
+    socket.on("resultRound", (data) => { //fix this
+      const { playerWordList, solution } = data;
 
       setPlayers({
         [YOUR_NAME]: playerWordList || [],
-        [OPPONENTS_NAME]: opponentWordList || [],
+        [OPPONENTS_NAME]: players[OPPONENTS_NAME],
         solutions: solution || [],
       });
     });
