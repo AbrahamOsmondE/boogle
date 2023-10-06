@@ -19,7 +19,7 @@ const ResultStage: React.FC<ResultStageProps> = ({
 
   const navigate = useNavigate();
   const isInSolution = (word: string) => {
-    return players['solutions']?.some(wordObj => wordObj.word === word);
+    return players["solutions"]?.some((wordObj) => wordObj.word === word);
   };
   const countScore = (player: Words[]) => {
     return player?.reduce((res, cur) => {

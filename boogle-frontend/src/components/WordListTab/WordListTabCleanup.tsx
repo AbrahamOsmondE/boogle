@@ -82,7 +82,7 @@ const WordListTabCleanUp: React.FC<WordListTabCleanUpProps> = ({
       ...players,
       [editPlayerName]: players[editPlayerName].map((item, index) => {
         if (index === editWordIndex) {
-          if (handleWordEdit) handleWordEdit(item.word, editedWord)
+          if (handleWordEdit) handleWordEdit(item.word, editedWord);
           return {
             ...item,
             word: editedWord.toUpperCase(),

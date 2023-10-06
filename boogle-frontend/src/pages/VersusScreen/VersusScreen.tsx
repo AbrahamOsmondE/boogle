@@ -9,15 +9,21 @@ import { OPPONENTS_NAME, YOUR_NAME } from "../../constants";
 import VersusChallengeStage from "../../stages/VersusChallengeStage/VersusChallengeStage";
 import LoadingOverlay from "../../components/LoadingOverlay/LoadingOverlay";
 import { useAppSelector } from "../../app/hooks";
-import { selectGlobalBoard } from "../../redux/features/globalSlice";
+import {
+  selectGlobalBoard,
+  setTimeLeft,
+} from "../../redux/features/globalSlice";
+import { useAppDispatch } from "../../app/hooks";
+
 const VersusScreen: React.FC = () => {
-  const [stage, setStage] = useState(10);
+  const [stage, setStage] = useState(4);
   const [players, setPlayers]: [Players, Dispatch<SetStateAction<Players>>] =
     useState({});
   const [letters, setLetters] = useState(defaultBoard);
   const [solutions, setSolutions] = useState<Words[]>([]);
   const board = useAppSelector(selectGlobalBoard);
   const storedStage = localStorage.getItem("stage");
+  const dispatch = useAppDispatch();
 
   const roomCode = localStorage.getItem("roomCode");
   const userId = localStorage.getItem("userId");
@@ -34,6 +40,7 @@ const VersusScreen: React.FC = () => {
     } else if (stage === StageEnum.CLEANUP) {
     } else if (stage === StageEnum.CHALLENGE) {
     } else if (stage === StageEnum.RESULT) {
+    } else if (stage === StageEnum.WAIT) {
     } else {
       if (!storedStage) {
         setStage(StageEnum.PLAY);
@@ -80,14 +87,14 @@ const VersusScreen: React.FC = () => {
   useEffect(() => {
     if (!storedStage && letters[0] && players.solutions?.length === 0) {
       invokeLambda();
-      localStorage.setItem("stage", '0');
+      localStorage.setItem("stage", "0");
     }
   }, [letters]);
 
   useEffect(() => {
     socket.on("rejoinedRoom", (data) => {
-      const { words, opponentWords, solutions, board, round } = data;
-
+      const { words, opponentWords, solutions, board, round, timeLeft } = data;
+      dispatch(setTimeLeft(timeLeft));
       setLetters(board);
       setPlayers({
         [YOUR_NAME]: words || [],
@@ -107,7 +114,8 @@ const VersusScreen: React.FC = () => {
       });
     });
 
-    socket.on("resultRound", (data) => { //fix this
+    socket.on("resultRound", (data) => {
+      //fix this
       const { playerWordList, solution } = data;
 
       setPlayers({
@@ -117,10 +125,33 @@ const VersusScreen: React.FC = () => {
       });
     });
 
+    socket.on("disconnect", () => {
+      socket.emit("game:disconnect", { roomCode });
+    });
+
+    socket.on("goToNextRound", (data) => {
+      const { stage } = data;
+
+      setStage(stage);
+    });
+
+    socket.on("opponentReconnected", (data) => {
+      const { words, opponentWords, solutions, round } = data;
+      setStage(round);
+      setPlayers({
+        [YOUR_NAME]: words || players[YOUR_NAME] || [],
+        [OPPONENTS_NAME]: opponentWords || players[OPPONENTS_NAME] || [],
+        solutions: solutions || players["solutions"] || [],
+      });
+    });
+
     return () => {
       socket.off("rejoinedRoom");
       socket.off("challengeRound");
       socket.off("resultRound");
+      socket.off("disconnect");
+      socket.off("goToNextRound");
+      socket.off("opponentReconnected");
     };
   }, []);
 
@@ -160,6 +191,8 @@ const VersusScreen: React.FC = () => {
             letters={letters}
           />
         );
+      case StageEnum.WAIT:
+        return <LoadingOverlay />;
       default:
         return <LoadingOverlay />;
     }

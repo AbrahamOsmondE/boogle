@@ -31,13 +31,13 @@ const MainScreen: React.FC = () => {
     const roomCodeParam = queryParams.get("join");
 
     //do exact same on join room dialog
-    socket.on("joinedRoom", (data) => {      
+    socket.on("joinedRoom", (data) => {
       if (!data.isPlayer) alert("Room is full!");
 
       localStorage.setItem("roomCode", data.roomCode);
       localStorage.setItem("userId", data.userId);
       dispatch(setGlobalBoard(data.board));
-      console.log(localStorage)
+      console.log(localStorage);
       navigate("/versus");
     });
 

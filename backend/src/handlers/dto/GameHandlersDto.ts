@@ -3,6 +3,8 @@ export interface Room {
   spectators: string[];
   board: string[];
   currentRound: RoundEnum;
+  roundStartTime?: Date;
+  socketIds: Player[];
 }
 
 export interface Word {

@@ -4,7 +4,11 @@ import TabPanel from "@mui/lab/TabPanel";
 import { TabContext } from "@mui/lab";
 import { Players, Words } from "../../stages/core";
 
-const WordListTab: React.FC<WordListTabProps> = ({ players, solutions, setScore }) => {
+const WordListTab: React.FC<WordListTabProps> = ({
+  players,
+  solutions,
+  setScore,
+}) => {
   const [selectedTab, setSelectedTab] = useState("0");
   const handleTabChange = (
     event: React.SyntheticEvent<Element, Event>,
@@ -13,14 +17,14 @@ const WordListTab: React.FC<WordListTabProps> = ({ players, solutions, setScore 
     setSelectedTab(newValue);
     Object.keys(players).map((player, index) => {
       if (newValue === index.toString()) {
-        const score = countScore(players[player]) ?? 0
-        if(setScore) setScore(score)
+        const score = countScore(players[player]) ?? 0;
+        if (setScore) setScore(score);
       }
-    })
+    });
   };
 
   const isInSolution = (word: string) => {
-    return players['solutions']?.some(wordObj => wordObj.word===word);
+    return players["solutions"]?.some((wordObj) => wordObj.word === word);
   };
   const countScore = (player: Words[]) => {
     return player?.reduce((res, cur) => {

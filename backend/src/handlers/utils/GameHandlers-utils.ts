@@ -1,12 +1,15 @@
 import { Room, Word } from "../dto/GameHandlersDto";
 
-export const getRoomData = async (client:any, roomCode:string):Promise<Room | undefined> => {
+export const getRoomData = async (
+  client: any,
+  roomCode: string,
+): Promise<Room | undefined> => {
   const roomJson = await client.HGET("rooms", roomCode);
 
-  if (!roomJson) return
+  if (!roomJson) return;
 
-  return JSON.parse(roomJson)
-}
+  return JSON.parse(roomJson);
+};
 
 export const generateRoomCode = () => {
   return Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -35,34 +38,33 @@ export const generateBoard = () => {
   const shuffledArray = [...boggleDice].sort(() => Math.random() - 0.5);
 
   return shuffledArray.map((die) => {
-    const faceIndex = Math.floor(Math.random() * die.length)
+    const faceIndex = Math.floor(Math.random() * die.length);
     return die[faceIndex];
   });
 };
-export const counter = (words:string[] | Record<string, string>):Record<string, number> => {
+export const counter = (
+  words: string[] | Record<string, string>,
+): Record<string, number> => {
   if (Array.isArray(words)) {
-    return words.reduce(
-      (acc: Record<string, number>, curr: string) => {
-        acc[curr] = (acc[curr] || 0) + 1;
+    return words.reduce((acc: Record<string, number>, curr: string) => {
+      acc[curr] = (acc[curr] || 0) + 1;
+      return acc;
+    }, {});
+  } else {
+    return Object.keys(words).reduce(
+      (acc: Record<string, number>, key: string) => {
+        acc[key] = parseFloat(words[key]);
         return acc;
       },
       {},
     );
-  } else {
-    return Object.keys(words).reduce(
-    (acc: Record<string, number>, key: string) => {
-      acc[key] = parseFloat(words[key]);
-      return acc;
-    },
-    {},
-  );
   }
-}
+};
 export const generateWordChecklist = async (client, playerId: string) => {
   const wordObjects = await client.HGETALL(playerId);
 
   const words: string[] = Object.keys(wordObjects);
-  const wordCount: Record<string, number> = counter(wordObjects)
+  const wordCount: Record<string, number> = counter(wordObjects);
 
   return words.reduce((res: Word[], curr: string) => {
     if (wordCount[curr] > 0) {

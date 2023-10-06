@@ -8,6 +8,8 @@ import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
 import { OPPONENTS_NAME } from "../../constants";
 import { socket } from "../..";
 import WordListTabChallenge from "../../components/WordListTab/WordListTabChallenge";
+import { useAppSelector } from "../../app/hooks";
+import { selectGlobalTimeLeft } from "../../redux/features/globalSlice";
 
 const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
   setStage,
@@ -15,13 +17,13 @@ const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
   setPlayers,
 }) => {
   const [count, setCount] = useState(3);
-  const [time, setTime] = useState(30);
+  const [time, setTime] = useState(useAppSelector(selectGlobalTimeLeft));
 
   const userId = localStorage.getItem("userId");
   const roomCode = localStorage.getItem("roomCode");
 
   const isInSolution = (word: string) => {
-    return players['solutions']?.some(wordObj => wordObj.word===word);
+    return players["solutions"]?.some((wordObj) => wordObj.word === word);
   };
   const countScore = (player: Words[]) => {
     return player?.reduce((res, cur) => {
@@ -59,17 +61,23 @@ const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
       clearInterval(timer);
     };
   }, []);
-  
+
   useEffect(() => {
     if (time === 0) {
       const words = players[OPPONENTS_NAME].filter((val) => val.checked).map(
         (wordObj) => wordObj.word,
       );
       const stage = localStorage.getItem("stage") ?? "0";
-      const nextStage = parseInt(stage) + 1
-      socket.emit("game:next_round", { userId, roomCode, words, stage:parseInt(stage) });
+      const nextStage = parseInt(stage) + 1;
       localStorage.setItem("stage", nextStage.toString());
-      setStage(StageEnum.RESULT);
+      socket.emit("game:next_round", {
+        userId,
+        roomCode,
+        words,
+        stage: parseInt(stage),
+      });
+      socket.emit("game:go_to_next_round", { roomCode, stage: nextStage });
+      setStage(4);
     }
   }, [time]);
 
@@ -102,7 +110,7 @@ const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
             </Button>
           </Stack>
           <WordListTabChallenge
-            players={{[OPPONENTS_NAME]: players[OPPONENTS_NAME]}}
+            players={{ [OPPONENTS_NAME]: players[OPPONENTS_NAME] }}
             setPlayers={setPlayers}
             updateChecked={updateChecked}
           />

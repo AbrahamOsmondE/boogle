@@ -4,10 +4,12 @@ import CSS from "csstype";
 import TextCountdown from "../../components/TextCountdown/TextCountdown";
 import { Button, Stack, Typography } from "@mui/material";
 import WordListTabCleanUp from "../../components/WordListTab/WordListTabCleanup";
-import { Players, StageEnum, Words } from "../core";
+import { Players, Words } from "../core";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
 import { YOUR_NAME } from "../../constants";
 import { socket } from "../..";
+import { selectGlobalTimeLeft } from "../../redux/features/globalSlice";
+import { useAppSelector } from "../../app/hooks";
 
 const VersusCleanUpStage: React.FC<VersusCleanUpStageProps> = ({
   setStage,
@@ -15,12 +17,12 @@ const VersusCleanUpStage: React.FC<VersusCleanUpStageProps> = ({
   setPlayers,
 }) => {
   const [count, setCount] = useState(3);
-  const [time, setTime] = useState(30);
+  const [time, setTime] = useState(useAppSelector(selectGlobalTimeLeft));
   const userId = localStorage.getItem("userId");
   const roomCode = localStorage.getItem("roomCode");
 
   const isInSolution = (word: string) => {
-    return players['solutions']?.some(wordObj => wordObj.word===word);
+    return players["solutions"]?.some((wordObj) => wordObj.word === word);
   };
   const countScore = (player: Words[]) => {
     return player?.reduce((res, cur) => {
@@ -60,8 +62,8 @@ const VersusCleanUpStage: React.FC<VersusCleanUpStageProps> = ({
   }, []);
 
   const handleWordEdit = (prevWord: string, word: string) => {
-    socket.emit("game:edit_word", {userId, prevWord, word})
-  }
+    socket.emit("game:edit_word", { userId, prevWord, word });
+  };
 
   useEffect(() => {
     if (time === 0) {
@@ -69,10 +71,16 @@ const VersusCleanUpStage: React.FC<VersusCleanUpStageProps> = ({
         (wordObj) => wordObj.word,
       );
       const stage = localStorage.getItem("stage") ?? "0";
-      const nextStage = parseInt(stage) + 1
-      socket.emit("game:next_round", { userId, roomCode, words, stage:parseInt(stage) });
+      const nextStage = parseInt(stage) + 1;
       localStorage.setItem("stage", nextStage.toString());
-      setStage(StageEnum.CHALLENGE);
+      socket.emit("game:next_round", {
+        userId,
+        roomCode,
+        words,
+        stage: parseInt(stage),
+      });
+      socket.emit("game:go_to_next_round", { roomCode, stage: nextStage });
+      setStage(4);
     }
   }, [time]);
 
@@ -105,7 +113,7 @@ const VersusCleanUpStage: React.FC<VersusCleanUpStageProps> = ({
             </Button>
           </Stack>
           <WordListTabCleanUp
-            players={{[YOUR_NAME]:players[YOUR_NAME]}}
+            players={{ [YOUR_NAME]: players[YOUR_NAME] }}
             setPlayers={setPlayers}
             updateChecked={updateChecked}
             handleWordEdit={handleWordEdit}

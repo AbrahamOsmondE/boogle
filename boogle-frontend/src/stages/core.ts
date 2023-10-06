@@ -3,6 +3,7 @@ export enum StageEnum {
   CLEANUP = 1,
   CHALLENGE = 2,
   RESULT = 3,
+  WAIT = 4,
 }
 
 export interface Players {
@@ -13,4 +14,3 @@ export interface Words {
   word: string;
   checked: boolean;
 }
-

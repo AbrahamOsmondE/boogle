@@ -5,11 +5,13 @@ import BoggleBoard from "../../components/BoggleBoard/BoggleBoard";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
 import TextCountdown from "../../components/TextCountdown/TextCountdown";
 import { Typography } from "@mui/material";
-import { Players, StageEnum } from "../core";
+import { Players } from "../core";
 import DefaultBoard from "../../components/BoggleBoard/DefaultBoard";
 import { socket } from "../..";
 import { YOUR_NAME } from "../../constants";
 import { Words } from "../core";
+import { useAppSelector } from "../../app/hooks";
+import { selectGlobalTimeLeft } from "../../redux/features/globalSlice";
 
 const VersusPlayStage: React.FC<VersusPlayStageProps> = ({
   setStage,
@@ -18,7 +20,7 @@ const VersusPlayStage: React.FC<VersusPlayStageProps> = ({
   letters,
 }) => {
   const [count, setCount] = useState(3);
-  const [time, setTime] = useState(30);
+  const [time, setTime] = useState(useAppSelector(selectGlobalTimeLeft));
   const [word, setWord] = useState(" ");
   const roomCode = localStorage.getItem("roomCode");
   const userId = localStorage.getItem("userId");
@@ -44,11 +46,16 @@ const VersusPlayStage: React.FC<VersusPlayStageProps> = ({
       setWord("TIMES UP!");
       const timer = setTimeout(() => {
         const stage = localStorage.getItem("stage") ?? "0";
-        const nextStage = parseInt(stage) + 1
-        socket.emit("game:next_round", { userId, roomCode, words, stage:parseInt(stage) });
+        const nextStage = parseInt(stage) + 1;
         localStorage.setItem("stage", nextStage.toString());
-
-        setStage(StageEnum.CLEANUP);
+        socket.emit("game:next_round", {
+          userId,
+          roomCode,
+          words,
+          stage: parseInt(stage),
+        });
+        socket.emit("game:go_to_next_round", { roomCode, stage: nextStage });
+        setStage(4);
       }, 3000);
       return () => clearTimeout(timer);
     }

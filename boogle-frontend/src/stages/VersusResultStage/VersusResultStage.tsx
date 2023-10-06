@@ -22,29 +22,6 @@ const VersusResultStage: React.FC<VersusResultStageProps> = ({
   const roomCode = localStorage.getItem("roomCode");
 
   const navigate = useNavigate();
-  const isInSolution = (word: string) => {
-    return players['solutions']?.some(wordObj => wordObj.word===word);
-  };
-  const countScore = (player: Words[]) => {
-    return player?.reduce((res, cur) => {
-      if (!cur.checked) return res;
-      const wordLength = cur.word.length;
-      let score = [0, 0];
-
-      if (wordLength >= 8) {
-        score = [5, -4];
-      } else if (wordLength >= 7) {
-        score = [4, -3];
-      } else if (wordLength >= 6) {
-        score = [3, -2];
-      } else if (wordLength >= 5) {
-        score = [2, -1];
-      } else if (wordLength >= 3) {
-        score = [1, -1];
-      }
-      return isInSolution(cur.word) ? res + score[0] : res + score[1];
-    }, 0);
-  };
 
   useEffect(() => {
     window.scrollTo(0, document.body.scrollHeight);
@@ -89,7 +66,7 @@ const VersusResultStage: React.FC<VersusResultStageProps> = ({
                 }}
                 variant="contained"
                 onClick={() => {
-                  socket.emit("game:end_room", {userId, roomCode});
+                  socket.emit("game:end_room", { userId, roomCode });
                   navigate("/");
                 }}
               >
@@ -102,7 +79,7 @@ const VersusResultStage: React.FC<VersusResultStageProps> = ({
                 }}
                 variant="contained"
                 onClick={() => {
-                  socket.emit("game:end_room", {userId, roomCode});
+                  socket.emit("game:end_room", { userId, roomCode });
                   setStage(StageEnum.PLAY);
                 }}
               >
@@ -111,7 +88,11 @@ const VersusResultStage: React.FC<VersusResultStageProps> = ({
             </Stack>
           </Stack>
           <DefaultBoard inputLetters={letters} />
-          <WordListTab players={players} solutions={solutions} setScore={setScore} />
+          <WordListTab
+            players={players}
+            solutions={solutions}
+            setScore={setScore}
+          />
         </>
       )}
     </div>
