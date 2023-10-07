@@ -4,7 +4,7 @@ import CSS from "csstype";
 import TextCountdown from "../../components/TextCountdown/TextCountdown";
 import { Button, Stack, Typography } from "@mui/material";
 import WordListTabCleanUp from "../../components/WordListTab/WordListTabCleanup";
-import { Players, Words } from "../core";
+import { Players, StageEnum, Words } from "../core";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
 import { YOUR_NAME } from "../../constants";
 import { socket } from "../..";
@@ -80,7 +80,7 @@ const VersusCleanUpStage: React.FC<VersusCleanUpStageProps> = ({
         stage: parseInt(stage),
       });
       socket.emit("game:go_to_next_round", { roomCode, stage: nextStage });
-      setStage(4);
+      setStage(StageEnum.WAIT);
     }
   }, [time]);
 

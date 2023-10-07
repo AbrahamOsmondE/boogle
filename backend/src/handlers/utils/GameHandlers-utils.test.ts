@@ -46,7 +46,7 @@ describe("test game handler", () => {
 
     const wordCheckList = await generateWordChecklist(redisClient, userId);
 
-    wordCheckList.forEach((wordCheck) => {
+    wordCheckList!.forEach((wordCheck) => {
       expect(wordList).toContain(wordCheck.word);
       expect(wordCheck.checked).toEqual(true);
     });
@@ -63,7 +63,7 @@ describe("test game handler", () => {
     await redisClient.HINCRBY(userId, word, -1);
     const wordCheckList = await generateWordChecklist(redisClient, userId);
 
-    const checkOfWord = wordCheckList.find(
+    const checkOfWord = wordCheckList!.find(
       (wordCheck) => wordCheck.word === word,
     );
 

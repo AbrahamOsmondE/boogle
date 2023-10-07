@@ -1,4 +1,6 @@
 import { faker } from "@faker-js/faker";
+import { getRoomData } from "./GameHandlers-utils";
+import { Room } from "../dto/GameHandlersDto";
 
 export const createSocketPromise = <T>(
   client: any,
@@ -53,6 +55,20 @@ export const generateRandomWords = (count) => {
     words.push(faker.word.noun());
   }
   return words;
+};
+
+export const endCurrentRound = async (redis, roomCode) => {
+  const room = await getRoomData(redis, roomCode);
+
+  if (!room) throw new Error("room not found");
+
+  const currentTime = new Date();
+
+  const newRoom: Room = {
+    ...room,
+    roundStartTime: new Date(currentTime.getTime() - 200000),
+  };
+  await redis.HSET("rooms", roomCode, JSON.stringify(newRoom));
 };
 
 export interface PlayerData {

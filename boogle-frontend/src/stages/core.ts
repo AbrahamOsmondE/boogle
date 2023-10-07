@@ -1,9 +1,9 @@
 export enum StageEnum {
-  PLAY = 0,
-  CLEANUP = 1,
-  CHALLENGE = 2,
-  RESULT = 3,
-  WAIT = 4,
+  PLAY = 1,
+  CLEANUP = 2,
+  CHALLENGE = 3,
+  RESULT = 4,
+  WAIT = 0,
 }
 
 export interface Players {

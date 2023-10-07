@@ -8,7 +8,12 @@ export const getRoomData = async (
 
   if (!roomJson) return;
 
-  return JSON.parse(roomJson);
+  const room = JSON.parse(roomJson);
+
+  return {
+    ...room,
+    roundStartTime: new Date(room.roundStartTime),
+  };
 };
 
 export const generateRoomCode = () => {
@@ -66,7 +71,7 @@ export const generateWordChecklist = async (client, playerId: string) => {
   const words: string[] = Object.keys(wordObjects);
   const wordCount: Record<string, number> = counter(wordObjects);
 
-  return words.reduce((res: Word[], curr: string) => {
+  const arr = words.reduce((res: Word[], curr: string) => {
     if (wordCount[curr] > 0) {
       for (let i = 0; i < wordCount[curr]; i++) {
         res.push({
@@ -82,4 +87,6 @@ export const generateWordChecklist = async (client, playerId: string) => {
     }
     return res;
   }, []);
+
+  return arr.length === 0 && playerId.endsWith("challenge") ? undefined : arr;
 };

@@ -77,7 +77,7 @@ const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
         stage: parseInt(stage),
       });
       socket.emit("game:go_to_next_round", { roomCode, stage: nextStage });
-      setStage(4);
+      setStage(StageEnum.WAIT);
     }
   }, [time]);
 

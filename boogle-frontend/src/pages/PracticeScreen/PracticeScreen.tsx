@@ -7,7 +7,7 @@ import ResultStage from "../../stages/ResultStage/ResultStage";
 import { boogleAxios } from "../..";
 import { YOUR_NAME } from "../../constants";
 const PracticeScreen: React.FC = () => {
-  const [stage, setStage] = useState(0);
+  const [stage, setStage] = useState(StageEnum.PLAY);
   const [players, setPlayers]: [Players, Dispatch<SetStateAction<Players>>] =
     useState({});
   const [letters, setLetters] = useState(generateRandomBoggleBoard());

@@ -7,7 +7,6 @@ import {
   generateBoard,
   counter,
 } from "./utils/GameHandlers-utils";
-import { sleep } from "./utils/test-utils";
 
 export const registerGameHandlers = (io: any, socket: any) => {
   const createGame = async () => {
@@ -58,7 +57,7 @@ export const registerGameHandlers = (io: any, socket: any) => {
       const newRoom: Room = {
         ...room,
         players: [...room.players, { id: socket.id }],
-        currentRound: 1,
+        currentRound: RoundEnum.PLAY,
         roundStartTime: new Date(),
         socketIds: [...room.socketIds, { id: socket.id }],
       };
@@ -125,16 +124,11 @@ export const registerGameHandlers = (io: any, socket: any) => {
     const opponentSocketId = opponentSocket[0].id;
 
     const countObject = counter(words);
+    const newRound = stage + 1;
 
-    const newRoundRoom: Room = {
-      ...room,
-      currentRound: stage + 1,
-      roundStartTime: new Date(),
-    };
-
-    if (newRoundRoom.currentRound === RoundEnum.CLEAN_UP) {
+    if (newRound === RoundEnum.CLEAN_UP) {
       redisClient.HSET(userId, countObject);
-    } else if (newRoundRoom.currentRound === RoundEnum.CHALLENGE) {
+    } else if (newRound === RoundEnum.CHALLENGE) {
       redisClient.HSET(`${opponentId}_challenge`, countObject);
 
       socket.to(opponentSocketId).emit("challengeRound", {
@@ -142,7 +136,7 @@ export const registerGameHandlers = (io: any, socket: any) => {
           return { word, checked: true };
         }),
       });
-    } else if (newRoundRoom.currentRound === RoundEnum.RESULT) {
+    } else if (newRound === RoundEnum.RESULT) {
       const solution = await redisClient.HGET("solutions", roomCode);
 
       socket.to(opponentSocketId).emit("resultRound", {
@@ -153,17 +147,8 @@ export const registerGameHandlers = (io: any, socket: any) => {
         solution: JSON.parse(solution!),
       });
 
-      await sleep(500);
-
-      closeGame({
-        userId,
-        roomCode,
-      });
-
       return;
     }
-
-    redisClient.HSET("rooms", roomCode, JSON.stringify(newRoundRoom));
   };
 
   const goToNextRound = async (data: any) => {
@@ -174,6 +159,14 @@ export const registerGameHandlers = (io: any, socket: any) => {
     if (!room) throw new Error("Room Not Found");
 
     if (room.socketIds.length == 2) {
+      const newRoundRoom: Room = {
+        ...room,
+        currentRound: stage + 1,
+        roundStartTime: new Date(),
+      };
+
+      redisClient.HSET("rooms", roomCode, JSON.stringify(newRoundRoom));
+
       socket.emit("goToNextRound", { stage: stage + 1 });
     }
   };
@@ -197,8 +190,9 @@ export const registerGameHandlers = (io: any, socket: any) => {
 
     // Get Date, and subtract from current time. If greater than 3 minutes, go to next round for opponent.
     const secondsElapsed =
-      new Date().getTime() - room.roundStartTime!.getTime();
-    const isRoundOver = secondsElapsed / 1000 >= 180;
+      (new Date().getTime() - room.roundStartTime!.getTime()) / 1000;
+    const isRoundOver = secondsElapsed >= 180;
+
     if (isRoundOver) {
       round = round + 1;
 
@@ -231,19 +225,22 @@ export const registerGameHandlers = (io: any, socket: any) => {
       }
     })();
 
-    const words: Word[] = await generateWordChecklist(redisClient, userKey);
-    const opponentWords: Word[] = await generateWordChecklist(
-      redisClient,
-      opponentKey,
-    );
+    const words =
+      (await generateWordChecklist(redisClient, userKey)) ||
+      ((await generateWordChecklist(redisClient, opponentId)) as Word[]);
+    const opponentWords =
+      (await generateWordChecklist(redisClient, opponentKey)) ||
+      ((await generateWordChecklist(redisClient, userId)) as Word[]);
     const solutionsJson = await redisClient.HGET("solutions", roomCode);
     const solutions: Word[] = solutionsJson ? JSON.parse(solutionsJson) : [];
 
+    console.log(words, userKey);
+    console.log(opponentWords, opponentKey);
     if (isRoundOver) {
       socket.to(opponentSocketId).emit("opponentReconnected", {
         board,
-        words,
-        opponentWords,
+        words: opponentWords,
+        opponentWords: words,
         solutions,
         round,
       });
@@ -255,7 +252,7 @@ export const registerGameHandlers = (io: any, socket: any) => {
       opponentWords,
       solutions,
       round,
-      timeLeft: isRoundOver ? 180 : 180 - secondsElapsed / 1000,
+      timeLeft: isRoundOver ? 180 : 180 - secondsElapsed,
     });
   };
 
@@ -268,6 +265,13 @@ export const registerGameHandlers = (io: any, socket: any) => {
       return;
     }
     const opponentSocket = room.socketIds.filter((s) => s.id !== socket.id);
+
+    if (opponentSocket.length < 0) {
+      closeGame({ roomCode, userId: room.players[0].id });
+      closeGame({ roomCode, userId: room.players[1].id });
+      return;
+    }
+
     const newRoom: Room = {
       ...room,
       socketIds: opponentSocket,
@@ -285,16 +289,16 @@ export const registerGameHandlers = (io: any, socket: any) => {
     redisClient.HDEL("solutions", roomCode);
   };
 
-  socket.on("game:create_room", createGame); //done
-  socket.on("game:join_room", joinGame); //done
-  socket.on("game:cancel_room", cancelRoomCreation); //done
-  socket.on("game:append_word", appendWord); //done
-  socket.on("game:update_word_status", updateWordStatus); //done
-  socket.on("game:solution", setSolutions); //done
-  socket.on("game:next_round", nextRound); //done
-  socket.on("game:rejoin_room", rejoinGame); //done
-  socket.on("game:end_room", closeGame); //done
-  socket.on("game:edit_word", editWord); //done
-  socket.on("game:disconnect", disconnect); //done
+  socket.on("game:create_room", createGame);
+  socket.on("game:join_room", joinGame);
+  socket.on("game:cancel_room", cancelRoomCreation);
+  socket.on("game:append_word", appendWord);
+  socket.on("game:update_word_status", updateWordStatus);
+  socket.on("game:solution", setSolutions);
+  socket.on("game:next_round", nextRound);
+  socket.on("game:rejoin_room", rejoinGame);
+  socket.on("game:end_room", closeGame);
+  socket.on("game:edit_word", editWord);
+  socket.on("game:disconnect", disconnect);
   socket.on("game:go_to_next_round", goToNextRound);
 };

@@ -5,7 +5,7 @@ import BoggleBoard from "../../components/BoggleBoard/BoggleBoard";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
 import TextCountdown from "../../components/TextCountdown/TextCountdown";
 import { Typography } from "@mui/material";
-import { Players } from "../core";
+import { Players, StageEnum } from "../core";
 import DefaultBoard from "../../components/BoggleBoard/DefaultBoard";
 import { socket } from "../..";
 import { YOUR_NAME } from "../../constants";
@@ -55,7 +55,7 @@ const VersusPlayStage: React.FC<VersusPlayStageProps> = ({
           stage: parseInt(stage),
         });
         socket.emit("game:go_to_next_round", { roomCode, stage: nextStage });
-        setStage(4);
+        setStage(StageEnum.WAIT);
       }, 3000);
       return () => clearTimeout(timer);
     }

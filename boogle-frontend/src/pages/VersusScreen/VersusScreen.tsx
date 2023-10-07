@@ -16,7 +16,7 @@ import {
 import { useAppDispatch } from "../../app/hooks";
 
 const VersusScreen: React.FC = () => {
-  const [stage, setStage] = useState(4);
+  const [stage, setStage] = useState(StageEnum.WAIT);
   const [players, setPlayers]: [Players, Dispatch<SetStateAction<Players>>] =
     useState({});
   const [letters, setLetters] = useState(defaultBoard);
