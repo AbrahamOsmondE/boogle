@@ -28,7 +28,7 @@ const WordListTabChallenge: React.FC<WordListTabChallengeProps> = ({
   const handleCheckboxToggle = (playerName: string, wordIndex: number) => {
     const updatedPlayers = {
       ...players,
-      [playerName]: players[playerName].map((item, index) => {
+      [playerName]: players[playerName]?.map((item, index) => {
         if (index === wordIndex) {
           if (updateChecked) updateChecked(item.word, !item.checked);
           return {
@@ -54,7 +54,7 @@ const WordListTabChallenge: React.FC<WordListTabChallengeProps> = ({
             style={{ border: "1px solid grey", borderBottom: "0px solid grey" }}
             TabIndicatorProps={{ style: { background: "white" } }}
           >
-            {Object.keys(players).map((playerName, index) => (
+            {Object.keys(players)?.map((playerName, index) => (
               <Tab
                 key={index}
                 disabled={playerName === "solutions"}
@@ -77,7 +77,7 @@ const WordListTabChallenge: React.FC<WordListTabChallengeProps> = ({
               />
             ))}
           </Tabs>
-          {Object.keys(players).map((playerName, playerIndex) => (
+          {Object.keys(players)?.map((playerName, playerIndex) => (
             <TabPanel
               key={playerIndex}
               value={playerIndex.toString()}
@@ -89,7 +89,7 @@ const WordListTabChallenge: React.FC<WordListTabChallengeProps> = ({
               }}
             >
               <List style={{ paddingTop: "0px" }}>
-                {players[playerName].map((word, wordIndex) => (
+                {players[playerName]?.map((word, wordIndex) => (
                   <ListItem
                     key={wordIndex}
                     style={{

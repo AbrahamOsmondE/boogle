@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
+import { ROUND_TIME } from "../../stages/core";
 
 interface GlobalState {
   board: string[];
@@ -8,7 +9,7 @@ interface GlobalState {
 
 const initialState: GlobalState = {
   board: [],
-  timeLeft: 180,
+  timeLeft: ROUND_TIME,
 };
 
 const globalSlice = createSlice({

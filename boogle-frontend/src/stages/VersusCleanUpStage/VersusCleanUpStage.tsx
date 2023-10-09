@@ -20,7 +20,6 @@ const VersusCleanUpStage: React.FC<VersusCleanUpStageProps> = ({
   const [time, setTime] = useState(useAppSelector(selectGlobalTimeLeft));
   const userId = localStorage.getItem("userId");
   const roomCode = localStorage.getItem("roomCode");
-
   const isInSolution = (word: string) => {
     return players["solutions"]?.some((wordObj) => wordObj.word === word);
   };
@@ -67,19 +66,18 @@ const VersusCleanUpStage: React.FC<VersusCleanUpStageProps> = ({
 
   useEffect(() => {
     if (time === 0) {
-      const words = players[YOUR_NAME].filter((val) => val.checked).map(
+      const words = players[YOUR_NAME]?.filter((val) => val.checked)?.map(
         (wordObj) => wordObj.word,
       );
+
       const stage = localStorage.getItem("stage") ?? "0";
-      const nextStage = parseInt(stage) + 1;
-      localStorage.setItem("stage", nextStage.toString());
+
       socket.emit("game:next_round", {
         userId,
         roomCode,
         words,
         stage: parseInt(stage),
       });
-      socket.emit("game:go_to_next_round", { roomCode, stage: nextStage });
       setStage(StageEnum.WAIT);
     }
   }, [time]);

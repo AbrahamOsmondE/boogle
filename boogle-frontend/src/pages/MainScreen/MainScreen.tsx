@@ -6,7 +6,8 @@ import { useNavigate } from "react-router-dom";
 import JoinRoomDialog from "../../components/JoinRoomDialog/JoinRoomDialog";
 import { socket } from "../..";
 import { useAppDispatch } from "../../app/hooks";
-import { setGlobalBoard } from "../../redux/features/globalSlice";
+import { setGlobalBoard, setTimeLeft } from "../../redux/features/globalSlice";
+import { ROUND_TIME } from "../../stages/core";
 
 const MainScreen: React.FC = () => {
   const [createRoomOpen, setCreateRoomOpen] = useState(false);
@@ -34,10 +35,11 @@ const MainScreen: React.FC = () => {
     socket.on("joinedRoom", (data) => {
       if (!data.isPlayer) alert("Room is full!");
 
+      dispatch(setTimeLeft(ROUND_TIME));
       localStorage.setItem("roomCode", data.roomCode);
       localStorage.setItem("userId", data.userId);
       dispatch(setGlobalBoard(data.board));
-      console.log(localStorage);
+
       navigate("/versus");
     });
 

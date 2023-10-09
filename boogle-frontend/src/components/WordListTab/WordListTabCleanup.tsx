@@ -52,7 +52,7 @@ const WordListTabCleanUp: React.FC<WordListTabCleanUpProps> = ({
   const handleCheckboxToggle = (playerName: string, wordIndex: number) => {
     const updatedPlayers = {
       ...players,
-      [playerName]: players[playerName].map((item, index) => {
+      [playerName]: players[playerName]?.map((item, index) => {
         if (index === wordIndex) {
           if (updateChecked) updateChecked(item.word, !item.checked);
           return {
@@ -80,7 +80,7 @@ const WordListTabCleanUp: React.FC<WordListTabCleanUpProps> = ({
     }
     const updatedPlayers = {
       ...players,
-      [editPlayerName]: players[editPlayerName].map((item, index) => {
+      [editPlayerName]: players[editPlayerName]?.map((item, index) => {
         if (index === editWordIndex) {
           if (handleWordEdit) handleWordEdit(item.word, editedWord);
           return {
@@ -91,6 +91,7 @@ const WordListTabCleanUp: React.FC<WordListTabCleanUpProps> = ({
         return item;
       }),
     };
+
     setPlayers(updatedPlayers);
     setOpen(false);
   };
@@ -107,7 +108,7 @@ const WordListTabCleanUp: React.FC<WordListTabCleanUpProps> = ({
             style={{ border: "1px solid grey", borderBottom: "0px solid grey" }}
             TabIndicatorProps={{ style: { background: "white" } }}
           >
-            {Object.keys(players).map((playerName, index) => (
+            {Object.keys(players)?.map((playerName, index) => (
               <Tab
                 key={index}
                 disabled={playerName === "solutions"}
@@ -130,7 +131,7 @@ const WordListTabCleanUp: React.FC<WordListTabCleanUpProps> = ({
               />
             ))}
           </Tabs>
-          {Object.keys(players).map((playerName, playerIndex) => (
+          {Object.keys(players)?.map((playerName, playerIndex) => (
             <TabPanel
               key={playerIndex}
               value={playerIndex.toString()}
@@ -142,7 +143,7 @@ const WordListTabCleanUp: React.FC<WordListTabCleanUpProps> = ({
               }}
             >
               <List style={{ paddingTop: "0px" }}>
-                {players[playerName].map((word, wordIndex) => (
+                {players[playerName]?.map((word, wordIndex) => (
                   <ListItem
                     key={wordIndex}
                     style={{

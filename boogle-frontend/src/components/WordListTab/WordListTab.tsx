@@ -15,7 +15,7 @@ const WordListTab: React.FC<WordListTabProps> = ({
     newValue: string,
   ) => {
     setSelectedTab(newValue);
-    Object.keys(players).map((player, index) => {
+    Object.keys(players)?.map((player, index) => {
       if (newValue === index.toString()) {
         const score = countScore(players[player]) ?? 0;
         if (setScore) setScore(score);
@@ -58,7 +58,7 @@ const WordListTab: React.FC<WordListTabProps> = ({
           style={{ border: "1px solid grey", borderBottom: "0px solid grey" }}
           TabIndicatorProps={{ style: { background: "white" } }}
         >
-          {Object.keys(players).map((playerName, index) => (
+          {Object.keys(players)?.map((playerName, index) => (
             <Tab
               key={index}
               label={playerName}
@@ -80,7 +80,7 @@ const WordListTab: React.FC<WordListTabProps> = ({
             />
           ))}
         </Tabs>
-        {Object.keys(players).map((playerName, playerIndex) => (
+        {Object.keys(players)?.map((playerName, playerIndex) => (
           <TabPanel
             key={playerIndex}
             value={playerIndex.toString()}
@@ -92,7 +92,7 @@ const WordListTab: React.FC<WordListTabProps> = ({
             }}
           >
             <List style={{ paddingTop: "0px" }}>
-              {players[playerName].map((word, wordIndex) => (
+              {players[playerName]?.map((word, wordIndex) => (
                 <ListItem key={wordIndex}>
                   <ListItemText
                     primary={word.word}

@@ -72,7 +72,7 @@ const VersusResultStage: React.FC<VersusResultStageProps> = ({
               >
                 Main Menu
               </Button>
-              <Button
+              {/* <Button
                 style={{
                   backgroundColor: "grey",
                   fontSize: "0.5rem",
@@ -84,7 +84,7 @@ const VersusResultStage: React.FC<VersusResultStageProps> = ({
                 }}
               >
                 Play again
-              </Button>
+              </Button> */}
             </Stack>
           </Stack>
           <DefaultBoard inputLetters={letters} />

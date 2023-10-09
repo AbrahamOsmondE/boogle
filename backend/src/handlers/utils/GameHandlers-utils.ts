@@ -1,9 +1,10 @@
-import { Room, Word } from "../dto/GameHandlersDto";
+import { Room, RoundEnum, Word } from "../dto/GameHandlersDto";
 
 export const getRoomData = async (
   client: any,
   roomCode: string,
 ): Promise<Room | undefined> => {
+  if (!roomCode) return;
   const roomJson = await client.HGET("rooms", roomCode);
 
   if (!roomJson) return;
@@ -50,6 +51,7 @@ export const generateBoard = () => {
 export const counter = (
   words: string[] | Record<string, string>,
 ): Record<string, number> => {
+  if (!words) return {};
   if (Array.isArray(words)) {
     return words.reduce((acc: Record<string, number>, curr: string) => {
       acc[curr] = (acc[curr] || 0) + 1;
@@ -89,4 +91,23 @@ export const generateWordChecklist = async (client, playerId: string) => {
   }, []);
 
   return arr.length === 0 && playerId.endsWith("challenge") ? undefined : arr;
+};
+
+export const getWordKeys = (
+  round: number,
+  userId: string,
+  opponentId: string,
+): [string, string] => {
+  switch (round) {
+    case RoundEnum.PLAY:
+      return [userId, opponentId];
+    case RoundEnum.CLEAN_UP:
+      return [userId, opponentId];
+    case RoundEnum.CHALLENGE:
+      return [`${userId}_challenge`, `${opponentId}_challenge`];
+    case RoundEnum.RESULT:
+      return [`${opponentId}_challenge`, `${userId}_challenge`];
+    default:
+      return [userId, opponentId];
+  }
 };

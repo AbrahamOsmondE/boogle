@@ -5,7 +5,7 @@ import BoggleBoard from "../../components/BoggleBoard/BoggleBoard";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
 import TextCountdown from "../../components/TextCountdown/TextCountdown";
 import { Typography } from "@mui/material";
-import { Players, StageEnum } from "../core";
+import { Players, ROUND_TIME, StageEnum } from "../core";
 import DefaultBoard from "../../components/BoggleBoard/DefaultBoard";
 
 const PlayStage: React.FC<PlayStageProps> = ({
@@ -15,7 +15,7 @@ const PlayStage: React.FC<PlayStageProps> = ({
   letters,
 }) => {
   const [count, setCount] = useState(3);
-  const [time, setTime] = useState(180);
+  const [time, setTime] = useState(ROUND_TIME);
   const [word, setWord] = useState(" ");
 
   useEffect(() => {

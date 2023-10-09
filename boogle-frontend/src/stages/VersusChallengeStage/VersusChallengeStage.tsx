@@ -18,7 +18,6 @@ const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
 }) => {
   const [count, setCount] = useState(3);
   const [time, setTime] = useState(useAppSelector(selectGlobalTimeLeft));
-
   const userId = localStorage.getItem("userId");
   const roomCode = localStorage.getItem("roomCode");
 
@@ -64,19 +63,16 @@ const VersusChallengeStage: React.FC<VersusChallengeStageProps> = ({
 
   useEffect(() => {
     if (time === 0) {
-      const words = players[OPPONENTS_NAME].filter((val) => val.checked).map(
+      const words = players[OPPONENTS_NAME]?.filter((val) => val.checked)?.map(
         (wordObj) => wordObj.word,
       );
       const stage = localStorage.getItem("stage") ?? "0";
-      const nextStage = parseInt(stage) + 1;
-      localStorage.setItem("stage", nextStage.toString());
       socket.emit("game:next_round", {
         userId,
         roomCode,
         words,
         stage: parseInt(stage),
       });
-      socket.emit("game:go_to_next_round", { roomCode, stage: nextStage });
       setStage(StageEnum.WAIT);
     }
   }, [time]);

@@ -5,14 +5,17 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import { socket } from "../..";
-import { setGlobalBoard } from "../../redux/features/globalSlice";
+import { setGlobalBoard, setTimeLeft } from "../../redux/features/globalSlice";
 import { useAppDispatch } from "../../app/hooks";
 import { useNavigate } from "react-router-dom";
+import { ROUND_TIME } from "../../stages/core";
 
 const CreateRoomDialog: React.FC<CreateRoomDialogProps> = ({ setOpen }) => {
   const [roomCode, setRoomCode] = useState("");
   const [copied, setCopied] = useState(false);
   const handleClose = () => {
+    localStorage.clear();
+
     socket.emit("game:cancel_room", { roomCode });
     setOpen(false);
   };
@@ -28,17 +31,21 @@ const CreateRoomDialog: React.FC<CreateRoomDialogProps> = ({ setOpen }) => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   useEffect(() => {
+    const roomCode = localStorage.getItem("roomCode");
+
+    if (roomCode) return;
+    localStorage.clear();
     socket.emit("game:create_room");
 
     socket.on("roomCreated", (data) => {
       setRoomCode(data.roomCode);
-      localStorage.clear();
       localStorage.setItem("roomCode", data.roomCode);
       localStorage.setItem("userId", data.userId);
     });
 
     socket.on("initializeNextRound", (data) => {
       const board = data.board;
+      dispatch(setTimeLeft(ROUND_TIME));
       dispatch(setGlobalBoard(board));
 
       navigate("/versus");

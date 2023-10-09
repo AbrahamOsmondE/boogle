@@ -16,19 +16,19 @@ import {
 import { useAppDispatch } from "../../app/hooks";
 
 const VersusScreen: React.FC = () => {
-  const [stage, setStage] = useState(StageEnum.WAIT);
+  const [stage, setStage] = useState(StageEnum.PLAY);
   const [players, setPlayers]: [Players, Dispatch<SetStateAction<Players>>] =
     useState({});
   const [letters, setLetters] = useState(defaultBoard);
   const [solutions, setSolutions] = useState<Words[]>([]);
   const board = useAppSelector(selectGlobalBoard);
-  const storedStage = localStorage.getItem("stage");
   const dispatch = useAppDispatch();
 
-  const roomCode = localStorage.getItem("roomCode");
-  const userId = localStorage.getItem("userId");
-
   useEffect(() => {
+    const roomCode = localStorage.getItem("roomCode");
+    const userId = localStorage.getItem("userId");
+    const storedStage = localStorage.getItem("stage");
+
     if (stage === StageEnum.PLAY) {
       setLetters(board);
       setPlayers({
@@ -41,6 +41,16 @@ const VersusScreen: React.FC = () => {
     } else if (stage === StageEnum.CHALLENGE) {
     } else if (stage === StageEnum.RESULT) {
     } else if (stage === StageEnum.WAIT) {
+      if (storedStage) {
+        const stage = parseInt(storedStage);
+        const nextStage = stage + 1;
+        localStorage.setItem("stage", nextStage.toString());
+        socket.emit("game:go_to_next_round", {
+          roomCode,
+          stage: stage,
+          userId,
+        });
+      }
     } else {
       if (!storedStage) {
         setStage(StageEnum.PLAY);
@@ -52,6 +62,7 @@ const VersusScreen: React.FC = () => {
 
   const invokeLambda = async () => {
     try {
+      const roomCode = localStorage.getItem("roomCode");
       const modifiedLetters = letters
         .map((letter) => (letter === "Qu" ? "Q" : letter))
         .join("");
@@ -73,7 +84,9 @@ const VersusScreen: React.FC = () => {
       }));
 
       setSolutions(solutionPlayer);
-      socket.emit("game:solution", { solution: solutionPlayer, roomCode });
+
+      if (solutionPlayer && roomCode)
+        socket.emit("game:solution", { solution: solutionPlayer, roomCode });
 
       setPlayers({
         ...players,
@@ -85,9 +98,12 @@ const VersusScreen: React.FC = () => {
   };
 
   useEffect(() => {
+    const storedStage = localStorage.getItem("stage");
+
     if (!storedStage && letters[0] && players.solutions?.length === 0) {
       invokeLambda();
-      localStorage.setItem("stage", "0");
+      localStorage.setItem("stage", StageEnum.PLAY.toString());
+      setStage(StageEnum.PLAY);
     }
   }, [letters]);
 
@@ -105,33 +121,20 @@ const VersusScreen: React.FC = () => {
       setStage(round);
     });
 
-    socket.on("challengeRound", (data) => {
-      const { words } = data;
-      setPlayers({
-        [YOUR_NAME]: players[YOUR_NAME] || [],
-        [OPPONENTS_NAME]: words || [],
-        solutions: [],
-      });
-    });
-
-    socket.on("resultRound", (data) => {
-      //fix this
-      const { playerWordList, solution } = data;
-
-      setPlayers({
-        [YOUR_NAME]: playerWordList || [],
-        [OPPONENTS_NAME]: players[OPPONENTS_NAME],
-        solutions: solution || [],
-      });
-    });
-
     socket.on("disconnect", () => {
+      const roomCode = localStorage.getItem("roomCode");
+
       socket.emit("game:disconnect", { roomCode });
     });
 
     socket.on("goToNextRound", (data) => {
-      const { stage } = data;
+      const { stage, words, opponentWords, solutions } = data;
 
+      setPlayers({
+        [YOUR_NAME]: words || [],
+        [OPPONENTS_NAME]: opponentWords || [],
+        solutions: solutions || [],
+      });
       setStage(stage);
     });
 
@@ -147,8 +150,6 @@ const VersusScreen: React.FC = () => {
 
     return () => {
       socket.off("rejoinedRoom");
-      socket.off("challengeRound");
-      socket.off("resultRound");
       socket.off("disconnect");
       socket.off("goToNextRound");
       socket.off("opponentReconnected");
