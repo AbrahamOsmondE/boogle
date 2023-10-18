@@ -13,7 +13,7 @@ import io from "socket.io-client";
 
 const baseUrl = process.env.REACT_APP_BASE_URL || "http://localhost:8000/api";
 const webSocketUrl =
-  process.env.REACT_APP_WEBSOCKET_URL || "http://localhost:8001";
+  process.env.REACT_APP_WEBSOCKET_URL || "http://localhost:8000";
 export const boogleAxios = axios.create({
   baseURL: baseUrl,
   headers: {

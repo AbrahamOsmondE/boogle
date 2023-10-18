@@ -1,9 +1,8 @@
-import express, { Request, Response, Application } from "express";
+import { Request, Response, Application } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import AWS from "aws-sdk";
-import http from "http";
-import { Server } from "socket.io";
+
 import { createClient } from "redis";
 import { registerGameHandlers } from "./handlers/GameHandlers";
 //For env File
@@ -17,14 +16,15 @@ const bodyParser = require("body-parser");
 
 const lambda = new AWS.Lambda();
 
-const app: Application = express();
+const app: Application = require("express")();
 
-const server = http.createServer(app);
-const io = new Server(server, {
+const server = require("http").createServer(app);
+const io = require("socket.io")(server, {
   cors: {
     origin: "http://localhost:3000",
   },
 });
+
 export const redisClient = createClient();
 
 redisClient.on("error", (err) => console.log("Redis Client Error", err));
@@ -60,7 +60,7 @@ const onConnection = (socket: any) => {
   registerGameHandlers(io, socket);
 };
 io.on("connection", onConnection);
-io.listen(8001);
-app.listen(port, () => {
+
+server.listen(port, () => {
   console.log(`Server has been Fire at http://localhost:${port}`);
 });

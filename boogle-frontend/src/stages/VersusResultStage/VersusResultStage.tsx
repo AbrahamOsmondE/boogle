@@ -4,13 +4,12 @@ import CSS from "csstype";
 import ScreenCountDown from "../../components/ScreenCountdown/ScreenCountdown";
 import { Button, Stack, Typography } from "@mui/material";
 import WordListTab from "../../components/WordListTab/WordListTab";
-import { Players, StageEnum, Words } from "../core";
+import { Players, Words } from "../core";
 import DefaultBoard from "../../components/BoggleBoard/DefaultBoard";
 import { useNavigate } from "react-router-dom";
 import { socket } from "../..";
 
 const VersusResultStage: React.FC<VersusResultStageProps> = ({
-  setStage,
   players,
   letters,
   solutions,

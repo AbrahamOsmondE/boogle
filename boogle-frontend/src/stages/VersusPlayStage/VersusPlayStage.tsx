@@ -40,17 +40,31 @@ const VersusPlayStage: React.FC<VersusPlayStageProps> = ({
     };
   }, []);
 
+  const timeLeft = useAppSelector(selectGlobalTimeLeft);
+  useEffect(() => {
+    setTime(timeLeft);
+  }, [timeLeft]);
   useEffect(() => {
     if (time === 0) {
       const words = players[YOUR_NAME].map((word: Words) => word.word);
       setWord("TIMES UP!");
       const timer = setTimeout(() => {
-        const stage = localStorage.getItem("stage") ?? "0";
+        const storedStage = localStorage.getItem("stage") ?? "0";
+        const stage = parseInt(storedStage);
+        const nextStage = stage + 1;
+        localStorage.setItem("stage", nextStage.toString());
+
         socket.emit("game:next_round", {
           userId,
           roomCode,
           words,
-          stage: parseInt(stage),
+          stage: stage,
+        });
+
+        socket.emit("game:go_to_next_round", {
+          roomCode,
+          stage: stage,
+          userId,
         });
         setStage(StageEnum.WAIT);
       }, 3000);

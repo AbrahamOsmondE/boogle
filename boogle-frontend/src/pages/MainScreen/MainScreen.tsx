@@ -12,6 +12,7 @@ import { ROUND_TIME } from "../../stages/core";
 const MainScreen: React.FC = () => {
   const [createRoomOpen, setCreateRoomOpen] = useState(false);
   const [joinRoomOpen, setJoinRoomOpen] = useState(false);
+  const [roomCode, setRoomCode] = useState("");
 
   const navigate = useNavigate();
 
@@ -38,6 +39,8 @@ const MainScreen: React.FC = () => {
       dispatch(setTimeLeft(ROUND_TIME));
       localStorage.setItem("roomCode", data.roomCode);
       localStorage.setItem("userId", data.userId);
+      localStorage.removeItem("stage");
+
       dispatch(setGlobalBoard(data.board));
 
       navigate("/versus");
@@ -51,6 +54,22 @@ const MainScreen: React.FC = () => {
       alert(`Error joining room: ${data.error}`);
     });
 
+    socket.on("roomCreated", (data) => {
+      setRoomCode(data.roomCode);
+      localStorage.setItem("roomCode", data.roomCode);
+      localStorage.setItem("userId", data.userId);
+    });
+
+    socket.on("initializeNextRound", (data) => {
+      const board = data.board;
+      dispatch(setTimeLeft(ROUND_TIME));
+      dispatch(setGlobalBoard(board));
+
+      localStorage.removeItem("stage");
+
+      navigate("/versus");
+    });
+
     if (roomCodeParam) {
       localStorage.clear();
       socket.emit("game:join_room", { roomCode: roomCodeParam });
@@ -60,6 +79,8 @@ const MainScreen: React.FC = () => {
       socket.off("joinedRoom");
       socket.off("roomNotFound");
       socket.off("roomJoiningError");
+      socket.off("roomCreated");
+      socket.off("initializeNextRound");
     };
   }, []);
 
@@ -110,7 +131,7 @@ const MainScreen: React.FC = () => {
         onClose={handleCreateRoomClose}
         aria-labelledby="responsive-dialog-title"
       >
-        <CreateRoomDialog setOpen={setCreateRoomOpen} />
+        <CreateRoomDialog setOpen={setCreateRoomOpen} roomCode={roomCode} />
       </Dialog>
       <Dialog
         open={joinRoomOpen}

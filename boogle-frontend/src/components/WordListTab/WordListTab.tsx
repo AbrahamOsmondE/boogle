@@ -28,7 +28,6 @@ const WordListTab: React.FC<WordListTabProps> = ({
   };
   const countScore = (player: Words[]) => {
     return player?.reduce((res, cur) => {
-      if (!cur.checked) return res;
       const wordLength = cur.word.length;
       let score = [0, 0];
 
@@ -43,10 +42,16 @@ const WordListTab: React.FC<WordListTabProps> = ({
       } else if (wordLength >= 3) {
         score = [1, -1];
       }
-      return isInSolution(cur.word) ? res + score[0] : res + score[1];
+      if (cur.checked) {
+        return res + score[0];
+      } else {
+        return isInSolution(cur.word)
+          ? res + score[0] - score[1]
+          : res + score[1];
+      }
     }, 0);
   };
-
+  // White/green/red = Unchallenged/correct/wrong, provide description if unchallenged but not a word (PHONY)
   return (
     <TabContext value={selectedTab}>
       <div style={{ width: "70%", marginTop: "3vh" }}>
@@ -92,25 +97,32 @@ const WordListTab: React.FC<WordListTabProps> = ({
             }}
           >
             <List style={{ paddingTop: "0px" }}>
-              {players[playerName]?.map((word, wordIndex) => (
-                <ListItem key={wordIndex}>
-                  <ListItemText
-                    primary={word.word}
-                    primaryTypographyProps={{
-                      variant: "body2",
-                      style: {
-                        fontSize: "15px",
-                        color:
-                          playerName === "solutions"
-                            ? "white"
-                            : isInSolution(word.word)
-                            ? "green"
-                            : "red",
-                      },
-                    }}
-                  />
-                </ListItem>
-              ))}
+              {players[playerName]?.map((word, wordIndex) => {
+                const displayedWord =
+                  word.checked && !isInSolution(word.word)
+                    ? `${word.word} (PHONY)`
+                    : word.word;
+                const wordColor =
+                  playerName === "solutions" || word.checked
+                    ? "white"
+                    : isInSolution(word.word)
+                    ? "green"
+                    : "red";
+                return (
+                  <ListItem key={wordIndex}>
+                    <ListItemText
+                      primary={displayedWord}
+                      primaryTypographyProps={{
+                        variant: "body2",
+                        style: {
+                          fontSize: "15px",
+                          color: wordColor,
+                        },
+                      }}
+                    />
+                  </ListItem>
+                );
+              })}
             </List>
           </TabPanel>
         ))}

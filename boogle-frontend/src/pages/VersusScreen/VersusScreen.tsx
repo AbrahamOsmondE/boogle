@@ -18,7 +18,11 @@ import { useAppDispatch } from "../../app/hooks";
 const VersusScreen: React.FC = () => {
   const [stage, setStage] = useState(StageEnum.PLAY);
   const [players, setPlayers]: [Players, Dispatch<SetStateAction<Players>>] =
-    useState({});
+    useState({
+      [YOUR_NAME]: [],
+      [OPPONENTS_NAME]: [],
+      solutions: [],
+    } as Players);
   const [letters, setLetters] = useState(defaultBoard);
   const [solutions, setSolutions] = useState<Words[]>([]);
   const board = useAppSelector(selectGlobalBoard);
@@ -27,34 +31,34 @@ const VersusScreen: React.FC = () => {
   useEffect(() => {
     const roomCode = localStorage.getItem("roomCode");
     const userId = localStorage.getItem("userId");
-    const storedStage = localStorage.getItem("stage");
 
     if (stage === StageEnum.PLAY) {
       setLetters(board);
-      setPlayers({
-        [YOUR_NAME]: [],
-        [OPPONENTS_NAME]: [],
-        solutions: [],
-      });
-      setSolutions([]);
-    } else if (stage === StageEnum.CLEANUP) {
-    } else if (stage === StageEnum.CHALLENGE) {
-    } else if (stage === StageEnum.RESULT) {
-    } else if (stage === StageEnum.WAIT) {
-      if (storedStage) {
-        const stage = parseInt(storedStage);
-        const nextStage = stage + 1;
-        localStorage.setItem("stage", nextStage.toString());
-        socket.emit("game:go_to_next_round", {
-          roomCode,
-          stage: stage,
-          userId,
+
+      if (!roomCode) {
+        setPlayers({
+          [YOUR_NAME]: [],
+          [OPPONENTS_NAME]: [],
+          solutions: [],
         });
-      }
-    } else {
-      if (!storedStage) {
-        setStage(StageEnum.PLAY);
+        setSolutions([]);
       } else {
+        socket.emit("game:rejoin_room", { roomCode, userId });
+      }
+    } else if (stage === StageEnum.CLEANUP) {
+      if (roomCode) {
+        socket.emit("game:rejoin_room", { roomCode, userId });
+      }
+    } else if (stage === StageEnum.CHALLENGE) {
+      if (roomCode) {
+        socket.emit("game:rejoin_room", { roomCode, userId });
+      }
+    } else if (stage === StageEnum.RESULT) {
+      if (roomCode) {
+        socket.emit("game:rejoin_room", { roomCode, userId });
+      }
+    } else if (stage === StageEnum.WAIT) {
+      if (roomCode) {
         socket.emit("game:rejoin_room", { roomCode, userId });
       }
     }
@@ -121,15 +125,8 @@ const VersusScreen: React.FC = () => {
       setStage(round);
     });
 
-    socket.on("disconnect", () => {
-      const roomCode = localStorage.getItem("roomCode");
-
-      socket.emit("game:disconnect", { roomCode });
-    });
-
     socket.on("goToNextRound", (data) => {
       const { stage, words, opponentWords, solutions } = data;
-
       setPlayers({
         [YOUR_NAME]: words || [],
         [OPPONENTS_NAME]: opponentWords || [],
