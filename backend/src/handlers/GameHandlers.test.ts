@@ -17,7 +17,7 @@ import {
 import { Room } from "./dto/GameHandlersDto";
 
 const webSocketUrl =
-  process.env.REACT_APP_WEBSOCKET_URL || "http://localhost:8001";
+  process.env.REACT_APP_WEBSOCKET_URL || "http://localhost:8000";
 
 const client = io(webSocketUrl);
 const opponentClient = io(webSocketUrl);
@@ -29,10 +29,18 @@ const sleepClient = {
     client.emit(keyword, data);
     await sleep(200);
   },
+  disconnect: async () => {
+    client.disconnect();
+    await sleep(200);
+  },
 };
 const sleepOpponentClient = {
   emit: async (keyword, data) => {
     opponentClient.emit(keyword, data);
+    await sleep(200);
+  },
+  disconnect: async () => {
+    opponentClient.disconnect();
     await sleep(200);
   },
 };
@@ -210,19 +218,17 @@ describe("test game handler", () => {
     const playerWords = generateRandomWords(10);
     const opponentWords = generateRandomWords(15);
 
-    sleepClient.emit("game:next_round", {
+    client.emit("game:go_to_next_round", {
+      roomCode,
+      stage: 0,
       userId,
-      roomCode,
       words: playerWords,
-      stage: 0,
     });
-    client.emit("game:go_to_next_round", { roomCode, stage: 0 });
-    opponentClient.emit("game:go_to_next_round", { roomCode, stage: 0 });
-    await sleepOpponentClient.emit("game:next_round", {
-      userId: opponentId,
+    await sleepOpponentClient.emit("game:go_to_next_round", {
       roomCode,
-      words: opponentWords,
       stage: 0,
+      userId: opponentId,
+      words: opponentWords,
     });
 
     const cachedPlayerWords = await redisClient.HGETALL(userId);
@@ -246,24 +252,22 @@ describe("test game handler", () => {
 
     const playerChallengeRoundPromise = createSocketPromise(
       client,
-      "challengeRound",
+      "goToNextRound",
       (data) => data,
     );
     const opponentChallengeRoundPromise = createSocketPromise(
       opponentClient,
-      "challengeRound",
+      "goToNextRound",
       (data) => data,
     );
 
-    client.emit("game:go_to_next_round", { roomCode, stage: 1 });
-    opponentClient.emit("game:go_to_next_round", { roomCode, stage: 1 });
-    await sleepClient.emit("game:next_round", {
+    sleepClient.emit("game:go_to_next_round", {
       userId,
       roomCode,
       words: playerWords,
       stage: 1,
     });
-    await sleepOpponentClient.emit("game:next_round", {
+    await sleepOpponentClient.emit("game:go_to_next_round", {
       userId: opponentId,
       roomCode,
       words: opponentWords,
@@ -273,24 +277,27 @@ describe("test game handler", () => {
     const newRoundRoomJson = await redisClient.HGET("rooms", roomCode);
     const newRoundRoom = JSON.parse(newRoundRoomJson!);
 
-    const [
-      { words: playerReceivedChallengeRoundWords },
-      { words: opponentReceivedChallengeRoundWords },
-    ] = await Promise.all([
+    const [playerReceivedData, opponentReceivedData] = await Promise.all([
       playerChallengeRoundPromise,
       opponentChallengeRoundPromise,
     ]);
 
     expect(newRoundRoom.currentRound).toEqual(2);
-    expect(playerReceivedChallengeRoundWords).toEqual(
+    expect(playerReceivedData.words).toEqual(
       opponentWords.map((word: string) => {
         return { word, checked: true };
       }),
     );
-    expect(opponentReceivedChallengeRoundWords).toEqual(
+    expect(playerReceivedData.words).toEqual(
+      opponentReceivedData.opponentWords,
+    );
+    expect(opponentReceivedData.words).toEqual(
       playerWords.map((word: string) => {
         return { word, checked: true };
       }),
+    );
+    expect(playerReceivedData.opponentWords).toEqual(
+      opponentReceivedData.words,
     );
   });
 
@@ -302,54 +309,64 @@ describe("test game handler", () => {
     const playerWords = generateRandomWords(10);
     const opponentWords = generateRandomWords(15);
 
+    await redisClient.HSET(`${opponentId}_challenge`, counter(playerWords));
+    await redisClient.HSET(`${userId}_challenge`, counter(opponentWords));
     const playerResultRoundPromise = createSocketPromise(
       client,
-      "resultRound",
+      "goToNextRound",
       (data) => data,
     );
     const opponentResultRoundPromise = createSocketPromise(
       opponentClient,
-      "resultRound",
+      "goToNextRound",
       (data) => data,
     );
 
-    sleepClient.emit("game:next_round", {
+    sleepClient.emit("game:go_to_next_round", {
       userId,
       roomCode,
       words: opponentWords,
       stage: 2,
     });
-    await sleepOpponentClient.emit("game:next_round", {
+    await sleepOpponentClient.emit("game:go_to_next_round", {
       userId: opponentId,
       roomCode,
       words: playerWords,
       stage: 2,
     });
 
-    const [
-      { playerWordList: playerReceivedWords, solution },
-      { playerWordList: opponentReceivedWords },
-    ] = await Promise.all([
+    const [playerReceivedData, opponentReceivedData] = await Promise.all([
       playerResultRoundPromise,
       opponentResultRoundPromise,
     ]);
 
-    expect(solution).toEqual(["word"]);
-    expect(playerReceivedWords).toEqual(
+    expect(playerReceivedData.solutions).toEqual(["word"]);
+    expect(playerReceivedData.solutions).toEqual(
+      opponentReceivedData.solutions,
+    );
+    expect(playerReceivedData.words).toEqual(
       playerWords.map((word: string) => {
         return { word, checked: true };
       }),
     );
-    expect(opponentReceivedWords).toEqual(
+    expect(playerReceivedData.words).toEqual(
+      opponentReceivedData.opponentWords,
+    );
+    expect(opponentReceivedData.words).toEqual(
       opponentWords.map((word: string) => {
         return { word, checked: true };
       }),
     );
+    expect(playerReceivedData.opponentWords).toEqual(
+      opponentReceivedData.words,
+    );
   });
 
   it("should disconnect user and remove socket", async () => {
+    const newOppClient = io(webSocketUrl);
+
     const { roomCode, userId } = await createRoom(client);
-    const { userId: opponentId } = await joinRoom(opponentClient, roomCode);
+    const { userId: opponentId } = await joinRoom(newOppClient, roomCode);
 
     await sleep(500);
 
@@ -358,46 +375,60 @@ describe("test game handler", () => {
     expect(room.socketIds.length).toEqual(2);
     expect(room.socketIds).toEqual([{ id: userId }, { id: opponentId }]);
 
-    await sleepOpponentClient.emit("game:disconnect", { roomCode });
+    newOppClient.disconnect();
+
+    await sleep(500);
+
     const newRoom = (await getRoomData(redisClient, roomCode)) as Room;
 
     expect(newRoom.socketIds.length).toEqual(1);
     expect(newRoom.socketIds).toEqual([{ id: userId }]);
+
+    newOppClient.close();
   });
 
-  it("should proceed to next round when users are connected", async () => {
-    const { roomCode } = await createRoom(client);
-    await joinRoom(opponentClient, roomCode);
+  it("should proceed to next round when both users are connexted and ready", async () => {
+    const { roomCode, userId } = await createRoom(client);
+    const { userId: opponentId } = await joinRoom(opponentClient, roomCode);
 
-    const nextRoundPromise = createSocketPromise(
-      client,
-      "goToNextRound",
-      (data) => data,
-    );
+    const playerWords = generateRandomWords(10);
+    const opponentWords = generateRandomWords(15);
 
-    await sleepClient.emit("game:go_to_next_round", { roomCode, stage: 1 });
-
-    const { stage } = await nextRoundPromise;
-    const newRoom = (await getRoomData(redisClient, roomCode)) as Room;
-
-    expect(newRoom.currentRound).toEqual(2);
-    expect(stage).toEqual(2);
-  });
-
-  it("should not proceed to next round when opponent disconnected", async () => {
-    const { roomCode } = await createRoom(client);
-    await joinRoom(opponentClient, roomCode);
-
-    await sleepOpponentClient.emit("game:disconnect", { roomCode });
-    sleepClient.emit("game:go_to_next_round", { roomCode, stage: 1 });
+    await sleepClient.emit("game:go_to_next_round", {
+      roomCode,
+      stage: 0,
+      userId,
+      words: playerWords,
+    });
 
     const newRoom = (await getRoomData(redisClient, roomCode)) as Room;
 
     expect(newRoom.currentRound).toEqual(0);
+
+    const oppNextRoundPromise = createSocketPromise(
+      opponentClient,
+      "goToNextRound",
+      (data) => data,
+    );
+
+    await sleepOpponentClient.emit("game:go_to_next_round", {
+      roomCode,
+      stage: 0,
+      userId: opponentId,
+      words: opponentWords,
+    });
+
+    const { stage: oppStage } = await oppNextRoundPromise;
+    const oppNewRoom = (await getRoomData(redisClient, roomCode)) as Room;
+
+    expect(oppNewRoom.currentRound).toEqual(1);
+    expect(oppStage).toEqual(1);
   });
 
   it("should reconnect mid game during play round", async () => {
-    const { roomCode, userId } = await createRoom(client);
+    const newClient = io(webSocketUrl);
+
+    const { roomCode, userId } = await createRoom(newClient);
     const { userId: opponentId, board } = await joinRoom(
       opponentClient,
       roomCode,
@@ -408,17 +439,21 @@ describe("test game handler", () => {
 
     await redisClient.HSET(userId, playerWords);
     await redisClient.HSET(opponentId, opponentWords);
-    await sleep(100);
 
-    await sleepClient.emit("game:disconnect", { roomCode });
+    newClient.disconnect();
+
+    await sleep(500);
 
     const rejoinedRoomPromise = createSocketPromise(
-      client,
+      newClient,
       "rejoinedRoom",
       (data) => data,
     );
 
-    client.emit("game:rejoin_room", { roomCode, userId });
+    newClient.connect();
+
+    newClient.emit("game:rejoin_room", { roomCode, userId });
+
     const data = await rejoinedRoomPromise;
 
     expect(data.board).toEqual(board);
@@ -434,10 +469,14 @@ describe("test game handler", () => {
     );
     expect(data.round).toEqual(0);
     expect(data.timeLeft).toBeGreaterThan(0);
+
+    newClient.close();
   });
 
   it("should reconnect mid game during clean up round", async () => {
-    const { roomCode, userId } = await createRoom(client);
+    const newClient = io(webSocketUrl);
+
+    const { roomCode, userId } = await createRoom(newClient);
     const { userId: opponentId, board } = await joinRoom(
       opponentClient,
       roomCode,
@@ -446,30 +485,29 @@ describe("test game handler", () => {
     const playerWords = generateRandomWords(10);
     const opponentWords = generateRandomWords(15);
 
-    client.emit("game:next_round", {
+    newClient.emit("game:go_to_next_round", {
       roomCode,
       userId,
       words: playerWords,
       stage: 0,
     });
-    client.emit("game:go_to_next_round", { roomCode, stage: 0 });
-    opponentClient.emit("game:go_to_next_round", { roomCode, stage: 0 });
-    await sleepOpponentClient.emit("game:next_round", {
+    await sleepOpponentClient.emit("game:go_to_next_round", {
       roomCode,
       userId: opponentId,
       words: opponentWords,
       stage: 0,
     });
+    newClient.disconnect();
 
-    await sleepClient.emit("game:disconnect", { roomCode });
-
+    await sleep(500);
     const rejoinedRoomPromise = createSocketPromise(
-      client,
+      newClient,
       "rejoinedRoom",
       (data) => data,
     );
 
-    client.emit("game:rejoin_room", { roomCode, userId });
+    newClient.connect();
+    newClient.emit("game:rejoin_room", { roomCode, userId });
     const data = await rejoinedRoomPromise;
 
     expect(data.board).toEqual(board);
@@ -486,10 +524,14 @@ describe("test game handler", () => {
     expect(data.round).toEqual(1);
     expect(data.timeLeft).toBeGreaterThan(0);
     expect(data.timeLeft).toBeLessThan(180);
+
+    newClient.close();
   });
 
   it("should reconnect mid game during challenge round", async () => {
-    const { roomCode, userId } = await createRoom(client);
+    const newClient = io(webSocketUrl);
+
+    const { roomCode, userId } = await createRoom(newClient);
     const { userId: opponentId, board } = await joinRoom(
       opponentClient,
       roomCode,
@@ -498,30 +540,33 @@ describe("test game handler", () => {
     const playerWords = generateRandomWords(10);
     const opponentWords = generateRandomWords(15);
 
-    client.emit("game:next_round", {
+    newClient.emit("game:go_to_next_round", {
       roomCode,
       userId,
       words: playerWords,
       stage: 1,
     });
-    client.emit("game:go_to_next_round", { roomCode, stage: 1 });
+    newClient.emit("game:go_to_next_round", { roomCode, stage: 1 });
     opponentClient.emit("game:go_to_next_round", { roomCode, stage: 1 });
-    await sleepOpponentClient.emit("game:next_round", {
+    await sleepOpponentClient.emit("game:go_to_next_round", {
       roomCode,
       userId: opponentId,
       words: opponentWords,
       stage: 1,
     });
 
-    await sleepClient.emit("game:disconnect", { roomCode });
+    newClient.disconnect();
+
+    await sleep(500);
 
     const rejoinedRoomPromise = createSocketPromise(
-      client,
+      newClient,
       "rejoinedRoom",
       (data) => data,
     );
 
-    client.emit("game:rejoin_room", { roomCode, userId });
+    newClient.connect();
+    newClient.emit("game:rejoin_room", { roomCode, userId });
     const data = await rejoinedRoomPromise;
 
     expect(data.board).toEqual(board);
@@ -538,10 +583,14 @@ describe("test game handler", () => {
     expect(data.round).toEqual(2);
     expect(data.timeLeft).toBeGreaterThan(0);
     expect(data.timeLeft).toBeLessThan(180);
+
+    newClient.close();
   });
 
   it("should reconnect during result round", async () => {
-    const { roomCode, userId } = await createRoom(client);
+    const newClient = io(webSocketUrl);
+
+    const { roomCode, userId } = await createRoom(newClient);
     const { userId: opponentId, board } = await joinRoom(
       opponentClient,
       roomCode,
@@ -550,30 +599,35 @@ describe("test game handler", () => {
     const playerWords = generateRandomWords(10);
     const opponentWords = generateRandomWords(15);
 
-    client.emit("game:next_round", {
+    await redisClient.HSET(`${opponentId}_challenge`, counter(playerWords));
+    await redisClient.HSET(`${userId}_challenge`, counter(opponentWords));
+
+    newClient.emit("game:go_to_next_round", {
       roomCode,
       userId,
       words: playerWords,
-      stage: 1,
+      stage: 2,
     });
-    client.emit("game:go_to_next_round", { roomCode, stage: 2 });
-    opponentClient.emit("game:go_to_next_round", { roomCode, stage: 2 });
-    await sleepOpponentClient.emit("game:next_round", {
+
+    await sleepOpponentClient.emit("game:go_to_next_round", {
       roomCode,
       userId: opponentId,
       words: opponentWords,
-      stage: 1,
+      stage: 2,
     });
 
-    await sleepClient.emit("game:disconnect", { roomCode });
+    newClient.disconnect();
+
+    await sleep(500);
 
     const rejoinedRoomPromise = createSocketPromise(
-      client,
+      newClient,
       "rejoinedRoom",
       (data) => data,
     );
 
-    client.emit("game:rejoin_room", { roomCode, userId });
+    newClient.connect();
+    newClient.emit("game:rejoin_room", { roomCode, userId });
     const data = await rejoinedRoomPromise;
 
     expect(data.board).toEqual(board);
@@ -590,10 +644,14 @@ describe("test game handler", () => {
     expect(data.round).toEqual(3);
     expect(data.timeLeft).toBeGreaterThan(0);
     expect(data.timeLeft).toBeLessThan(180);
+
+    newClient.close();
   });
 
   it("should reconnect to clean up round if disconnect on play round and round over, and notify opponent", async () => {
-    const { roomCode, userId } = await createRoom(client);
+    const newClient = io(webSocketUrl);
+
+    const { roomCode, userId } = await createRoom(newClient);
     const { userId: opponentId, board } = await joinRoom(
       opponentClient,
       roomCode,
@@ -605,12 +663,21 @@ describe("test game handler", () => {
     await redisClient.HSET(userId, playerWords);
     await redisClient.HSET(opponentId, opponentWords);
     await sleep(100);
+    opponentClient.emit("game:go_to_next_round", {
+      roomCode,
+      userId: opponentId,
+      words: opponentWords,
+      stage: 0,
+    });
 
-    await sleepClient.emit("game:disconnect", { roomCode });
+    newClient.disconnect();
+
+    await sleep(500);
+
     await endCurrentRound(redisClient, roomCode);
 
     const rejoinedRoomPromise = createSocketPromise(
-      client,
+      newClient,
       "rejoinedRoom",
       (data) => data,
     );
@@ -621,7 +688,9 @@ describe("test game handler", () => {
       (data) => data,
     );
 
-    client.emit("game:rejoin_room", { roomCode, userId });
+    newClient.connect();
+    newClient.emit("game:rejoin_room", { roomCode, userId });
+
     const data = await rejoinedRoomPromise;
     const opponentData = await notifyOpponentPromise;
 
@@ -651,31 +720,44 @@ describe("test game handler", () => {
       }),
     );
     expect(data.round).toEqual(1);
+
+    newClient.close();
   });
   it("should reconnect to challenge round if disconnect on clean up round and round over", async () => {
-    const { roomCode, userId } = await createRoom(client);
+    const newClient = io(webSocketUrl);
+
+    const { roomCode, userId } = await createRoom(newClient);
     const { userId: opponentId, board } = await joinRoom(
       opponentClient,
       roomCode,
     );
+    await sleep(200);
+
+    const room = {
+      ...(await getRoomData(redisClient, roomCode)),
+      currentRound: 1,
+    };
+
+    await redisClient.HSET("rooms", roomCode, JSON.stringify(room));
 
     const playerWords = generateRandomWords(10);
     const opponentWords = generateRandomWords(15);
 
-    await redisClient.HSET(userId, counter(playerWords));
-    opponentClient.emit("game:go_to_next_round", { roomCode, stage: 0 });
-    await sleepOpponentClient.emit("game:next_round", {
+    await redisClient.HSET(`${opponentId}_challenge`, counter(playerWords));
+    await sleepOpponentClient.emit("game:go_to_next_round", {
       roomCode,
       userId: opponentId,
       words: opponentWords,
       stage: 1,
     });
 
-    await sleepClient.emit("game:disconnect", { roomCode });
+    newClient.disconnect();
+
+    await sleep(500);
     await endCurrentRound(redisClient, roomCode);
 
     const rejoinedRoomPromise = createSocketPromise(
-      client,
+      newClient,
       "rejoinedRoom",
       (data) => data,
     );
@@ -684,7 +766,9 @@ describe("test game handler", () => {
       "opponentReconnected",
       (data) => data,
     );
-    client.emit("game:rejoin_room", { roomCode, userId });
+
+    newClient.connect();
+    newClient.emit("game:rejoin_room", { roomCode, userId });
     const data = await rejoinedRoomPromise;
     const opponentData = await notifyOpponentPromise;
 
@@ -714,30 +798,47 @@ describe("test game handler", () => {
       }),
     );
     expect(data.round).toEqual(2);
+    newClient.close();
   });
+
   it("should reconnect to result round if disconnect on challenge round and round over", async () => {
-    const { roomCode, userId } = await createRoom(client);
+    const newClient = io(webSocketUrl);
+
+    const { roomCode, userId } = await createRoom(newClient);
     const { userId: opponentId, board } = await joinRoom(
       opponentClient,
       roomCode,
     );
 
+    await sleep(200);
+
+    const room = {
+      ...(await getRoomData(redisClient, roomCode)),
+      currentRound: 2,
+    };
+
+    await redisClient.HSET("rooms", roomCode, JSON.stringify(room));
+
     const playerWords = generateRandomWords(10);
     const opponentWords = generateRandomWords(15);
 
-    await redisClient.HSET(`${userId}_challenge`, counter(opponentWords));
     await redisClient.HSET(`${opponentId}_challenge`, counter(playerWords));
+    await redisClient.HSET(`${userId}_challenge`, counter(opponentWords));
 
     await sleepOpponentClient.emit("game:go_to_next_round", {
       roomCode,
-      stage: 1,
+      userId: opponentId,
+      words: opponentWords,
+      stage: 2,
     });
 
-    await sleepClient.emit("game:disconnect", { roomCode });
+    newClient.disconnect();
+
+    await sleep(500);
     await endCurrentRound(redisClient, roomCode);
 
     const rejoinedRoomPromise = createSocketPromise(
-      client,
+      newClient,
       "rejoinedRoom",
       (data) => data,
     );
@@ -746,7 +847,9 @@ describe("test game handler", () => {
       "opponentReconnected",
       (data) => data,
     );
-    client.emit("game:rejoin_room", { roomCode, userId });
+
+    newClient.connect();
+    newClient.emit("game:rejoin_room", { roomCode, userId });
     const data = await rejoinedRoomPromise;
     const opponentData = await notifyOpponentPromise;
 
@@ -776,5 +879,7 @@ describe("test game handler", () => {
       }),
     );
     expect(data.round).toEqual(3);
+
+    newClient.close();
   });
 });

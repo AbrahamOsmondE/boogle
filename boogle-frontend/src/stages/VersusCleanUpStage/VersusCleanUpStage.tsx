@@ -78,15 +78,9 @@ const VersusCleanUpStage: React.FC<VersusCleanUpStageProps> = ({
       const nextStage = stage + 1;
       localStorage.setItem("stage", nextStage.toString());
 
-      socket.emit("game:next_round", {
-        userId,
-        roomCode,
-        words,
-        stage: stage,
-      });
-
       socket.emit("game:go_to_next_round", {
         roomCode,
+        words,
         stage: stage,
         userId,
       });

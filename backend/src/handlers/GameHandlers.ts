@@ -9,6 +9,7 @@ import {
   getWordKeys,
 } from "./utils/GameHandlers-utils";
 
+const EXPIRY_TIME = 60 * 15;
 export const registerGameHandlers = (io: any, socket: any) => {
   const createGame = async () => {
     redisClient.DEL(socket.id);
@@ -27,6 +28,8 @@ export const registerGameHandlers = (io: any, socket: any) => {
 
     redisClient.HSET("rooms", roomCode, JSON.stringify(room));
     redisClient.HSET("rooms", socket.id, roomCode);
+    redisClient.expire("rooms", EXPIRY_TIME);
+
     socket.join(roomCode);
     socket.emit("roomCreated", { roomCode, userId: socket.id, isPlayer: true });
   };
@@ -127,7 +130,7 @@ export const registerGameHandlers = (io: any, socket: any) => {
 
     const room = await getRoomData(redisClient, roomCode);
 
-    if (!room) throw new Error("Room Not Found");
+    if (!room) return;
 
     const opponent = room.players.filter((p) => p.id !== userId);
 
@@ -138,70 +141,90 @@ export const registerGameHandlers = (io: any, socket: any) => {
     const countObjectLength = Object.keys(countObject).length;
 
     if (newRound === RoundEnum.CLEAN_UP) {
-      if (countObjectLength) redisClient.HSET(userId, countObject);
+      if (countObjectLength) {
+        redisClient.HSET(userId, countObject);
+        redisClient.expire(userId, EXPIRY_TIME);
+      }
     } else if (newRound === RoundEnum.CHALLENGE) {
       if (countObjectLength)
         redisClient.HSET(`${opponentId}_challenge`, countObject);
+      redisClient.expire(`${opponentId}_challenge`, EXPIRY_TIME);
     } else if (newRound === RoundEnum.RESULT) {
       return;
     }
   };
 
   const goToNextRound = async (data: any) => {
-    const { roomCode, stage, userId } = data;
+    let solutions;
+    try {
+      const { roomCode, stage, userId } = data;
 
-    const room = await getRoomData(redisClient, roomCode);
+      const nextRoundPromise = nextRound(data);
+      const room = await getRoomData(redisClient, roomCode);
 
-    if (!room) throw new Error("Room Not Found");
-    const opponent = room.players.filter((p) => p.id !== userId);
-    const opponentSocket = room.socketIds.filter((s) => s.id !== socket.id);
+      if (!room) return;
+      const opponent = room.players.filter((p) => p.id !== userId);
+      const opponentSocket = room.socketIds.filter((s) => s.id !== socket.id);
 
-    const opponentId = opponent[0].id;
+      const opponentId = opponent[0].id;
 
-    const readyCount = await redisClient.HINCRBY("ready", roomCode, 1);
+      await Promise.resolve(nextRoundPromise);
 
-    if (room.socketIds.length == 2 && readyCount == 2) {
-      const [userKey, opponentKey] = getWordKeys(stage, userId, opponentId);
-      const words =
-        (await generateWordChecklist(redisClient, userKey)) ||
-        ((await generateWordChecklist(redisClient, opponentId)) as Word[]);
-      const opponentWords =
-        (await generateWordChecklist(redisClient, opponentKey)) ||
-        ((await generateWordChecklist(redisClient, userId)) as Word[]);
-      const solutionsJson = await redisClient.HGET("solutions", roomCode);
-      const solutions: Word[] = solutionsJson ? JSON.parse(solutionsJson) : [];
+      const readyCount = await redisClient.HINCRBY("ready", roomCode, 1);
+      const newStage = stage + 1;
+      if (room.socketIds.length == 2 && readyCount == 2) {
+        const [userKey, opponentKey] = getWordKeys(
+          newStage,
+          userId,
+          opponentId,
+        );
 
-      const newRoundRoom: Room = {
-        ...room,
-        currentRound: stage + 1,
-        roundStartTime: new Date(),
-      };
+        const words =
+          (await generateWordChecklist(redisClient, userKey)) ||
+          ((await generateWordChecklist(redisClient, opponentId)) as Word[]);
+        const opponentWords =
+          (await generateWordChecklist(redisClient, opponentKey)) ||
+          ((await generateWordChecklist(redisClient, userId)) as Word[]);
 
-      await redisClient.HSET("rooms", roomCode, JSON.stringify(newRoundRoom));
-      const yourWord =
-        newRoundRoom.currentRound === RoundEnum.RESULT
-          ? words
-          : words.filter((word) => word.checked);
-      const oppWord =
-        newRoundRoom.currentRound === RoundEnum.RESULT
-          ? opponentWords
-          : opponentWords.filter((word) => word.checked);
-      await redisClient.HSET("ready", roomCode, 0);
+        const newRoundRoom: Room = {
+          ...room,
+          currentRound: newStage,
+          roundStartTime: new Date(),
+        };
 
-      socket.emit("goToNextRound", {
-        stage: stage + 1,
-        words: yourWord,
-        opponentWords: oppWord,
-        solutions,
-      });
-      const opponentSocketId = opponentSocket[0].id;
+        await redisClient.HSET("rooms", roomCode, JSON.stringify(newRoundRoom));
+        const yourWord =
+          newRoundRoom.currentRound === RoundEnum.RESULT
+            ? words
+            : words.filter((word) => word.checked);
+        const oppWord =
+          newRoundRoom.currentRound === RoundEnum.RESULT
+            ? opponentWords
+            : opponentWords.filter((word) => word.checked);
+        await redisClient.HSET("ready", roomCode, 0);
 
-      socket.to(opponentSocketId).emit("goToNextRound", {
-        stage: stage + 1,
-        words: oppWord,
-        opponentWords: yourWord,
-        solutions,
-      });
+        if (newRoundRoom.currentRound === RoundEnum.RESULT) {
+          const solutionsJson = await redisClient.HGET("solutions", roomCode);
+          solutions = solutionsJson ? JSON.parse(solutionsJson) : [];
+        }
+
+        socket.emit("goToNextRound", {
+          stage: newStage,
+          words: yourWord,
+          opponentWords: oppWord,
+          solutions,
+        });
+        const opponentSocketId = opponentSocket[0].id;
+
+        socket.to(opponentSocketId).emit("goToNextRound", {
+          stage: newStage,
+          words: oppWord,
+          opponentWords: yourWord,
+          solutions,
+        });
+      }
+    } catch (e) {
+      console.error("an error has occured", e);
     }
   };
 
@@ -226,7 +249,6 @@ export const registerGameHandlers = (io: any, socket: any) => {
     const secondsElapsed =
       (new Date().getTime() - room.roundStartTime!.getTime()) / 1000;
     const isRoundOver = secondsElapsed >= 180;
-
     if (isRoundOver) {
       round = round + 1;
 
@@ -347,7 +369,6 @@ export const registerGameHandlers = (io: any, socket: any) => {
   socket.on("game:append_word", appendWord);
   socket.on("game:update_word_status", updateWordStatus);
   socket.on("game:solution", setSolutions);
-  socket.on("game:next_round", nextRound);
   socket.on("game:rejoin_room", rejoinGame);
   socket.on("game:end_room", closeGame);
   socket.on("game:edit_word", editWord);
